@@ -1,0 +1,133 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_import")
+
+cc_library(
+    name = "util",
+    srcs = [
+        "format_util.cpp",
+        "type_util.cpp",
+    ],
+    hdrs =[
+        "type_util.hpp",
+        "magic_numbers.h",
+        "format_util.hpp",
+        "files.hpp",
+    ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+)
+
+cc_library(
+    name = "sw_curve",
+    srcs = [
+        "sw_curve.cpp", 
+        "ginac_util.cpp",
+    ],
+    hdrs = [
+        "type_util.hpp",
+        "sw_curve.hpp",
+        "ginac_util.hpp",
+        "magic_numbers.h",
+        ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+    deps = [
+        "@spdlog",
+    ],
+)
+
+cc_library(
+    name = "path",
+    srcs = [
+        "path.cpp", 
+    ],
+    hdrs = [
+        "type_util.hpp",
+        "path.hpp",
+        "sw_curve.hpp",
+        "magic_numbers.h",
+        "ode_integrator.hpp",
+        "format_util.hpp",
+        ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+    deps = [
+        ":util",
+        ":ode_integrator",
+        ":sw_curve",
+        "@spdlog",
+    ],
+)
+
+cc_library(
+    name = "ode_integrator",
+    srcs = [
+        "ode_integrator.cpp",
+    ],
+    hdrs = [
+        "type_util.hpp",
+        "ode_integrator.hpp",
+        "sw_curve.hpp",
+        "magic_numbers.h",
+    ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+    deps = [
+        ":sw_curve",
+    ]
+)
+
+cc_library(
+    name = "nets",
+    srcs = [
+        "nets.cpp",
+    ],
+    hdrs = [
+        "ode_integrator.hpp",
+        "nets.hpp",
+        "sw_curve.hpp",
+        "path.hpp",
+        "format_util.hpp",
+        "type_util.hpp",
+        "magic_numbers.h"
+    ],
+    deps = [
+        ":path",
+        ":sw_curve",
+        ":util",
+        "@spdlog",
+    ]
+)
+
+cc_binary(
+    name = "networks",
+    srcs = [
+        "networks.cpp",
+    ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+    linkopts = [
+        "-lginac",
+        "-lcln",
+    ],
+    deps = [
+        ":nets",
+        ":util",
+        ":path",
+        ":ode_integrator",
+        ":sw_curve",
+        "@spdlog",
+    ],
+)
+
+
+

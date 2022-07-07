@@ -1,0 +1,7 @@
+# Use c++20
+build --repo_env=BAZEL_CXXOPTS='-std=c++20'
+run --repo_env=BAZEL_CXXOPTS='-std=c++20'
+
+# We require bzlmod.
+build --experimental_enable_bzlmod
+run --experimental_enable_bzlmod
