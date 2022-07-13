@@ -16,7 +16,8 @@ using namespace boost::numeric::odeint;
 
 auto compute_dm(const state_type &v, const state_type &dv) -> double;
 
-auto ODE_euler_step(const std::shared_ptr<SW_curve> curve, std::vector<state_type> &v, std::vector<double> &masses) -> void;
+auto ODE_euler_step(const std::shared_ptr<SW_curve> curve, std::vector<state_type> &v, std::vector<double> &masses, const double step_size, double theta) -> void;
+auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> curve, std::vector<state_type> &v, std::vector<double> &masses, const double step_size, double theta) -> void;
 
 struct observable {
   std::vector<double> times;
@@ -26,11 +27,12 @@ struct observable {
 
 class ODE_differential {
   public:
-    ODE_differential (std::shared_ptr<SW_curve> curve) : curve_(curve) {};
+    ODE_differential (std::shared_ptr<SW_curve> curve, double theta) : theta_(theta), curve_(curve) {};
 
     void operator() (const state_type &v, state_type &dv, const double);
 
   private:
+    double theta_;
     std::shared_ptr<SW_curve> curve_;
 };
 

@@ -1,9 +1,20 @@
 #include "path.hpp"
 
-auto integrator_thread(std::shared_ptr<SW_curve> pCurve, const state_type &v0, std::promise<std::vector<state_type>> v, std::promise<std::vector<double>> masses) -> void {
+auto get_path_point(state_type v) -> path_point {
+    path_point pp;
+    int32_t coord_real = static_cast<int32_t>((v.at(kIndexX).real() - kMapRangeReal.at(kIndexLowerBound)) 
+          / (kMapRangeReal.at(kIndexUpperBound) - kMapRangeReal.at(kIndexLowerBound)) * kMapResolutionReal);
+    int32_t coord_imag = static_cast<int32_t>((v.at(kIndexX).imag() - kMapRangeImag.at(kIndexLowerBound)) 
+          / (kMapRangeImag.at(kIndexUpperBound) - kMapRangeImag.at(kIndexLowerBound)) * kMapResolutionImag);
+    pp.coordinate_real = coord_real;
+    pp.coordinate_imag = coord_imag;
+    return pp;
+}
+
+auto integrator_thread(std::shared_ptr<SW_curve> pCurve, const state_type &v0, std::promise<std::vector<state_type>> v, std::promise<std::vector<double>> masses, double theta) -> void {
     spdlog::debug("Enter Integrator_thread");
     std::shared_ptr<SW_curve> thread_curve = pCurve;
-    ODE_differential diff(thread_curve);
+    ODE_differential diff(thread_curve, theta);
     ODE_integrator integrator(diff, v0);
     integrator.integrate_ode();
     v.set_value(integrator.get_v());
@@ -33,18 +44,41 @@ auto Path::update(future_type& future) -> void {
     }
 }
 
-auto Path::integrate(std::shared_ptr<SW_curve> pCurve) -> future_type {
+auto Path::integrate(std::shared_ptr<SW_curve> pCurve, double theta) -> future_type {
     state_type v0 = get_endpoint();
     std::promise<std::vector<state_type>> prom_v_;
     std::promise<std::vector<double>> prom_masses_;
     std::future<std::vector<state_type>> future_v_ = prom_v_.get_future();
     std::future<std::vector<double>> future_masses_ = prom_masses_.get_future();
 
-    std::thread{integrator_thread, pCurve, v0, std::move(prom_v_), std::move(prom_masses_)}.detach();
+    std::thread{integrator_thread, pCurve, v0, std::move(prom_v_), std::move(prom_masses_), theta}.detach();
     future_type future;
     std::get<0>(future) = std::move(future_v_);
     std::get<1>(future) = std::move(future_masses_);
     return future;
+}
+
+auto Path::compute_map_points() -> std::vector<path_point> {
+    path_point start_pp = get_path_point(v_.front());
+    start_pp.t = {0,0};
+    start_pp.id = id_;
+    start_pp.pp_vec_index = 0;
+    pp_vec.push_back(start_pp);
+    for (uint32_t i = 1; i < v_.size(); ++i) {
+        auto prev_pp_ptr = std::prev(pp_vec.end());
+        path_point new_pp = get_path_point(v_.at(i));
+        if (new_pp.coordinate_real == prev_pp_ptr->coordinate_real && new_pp.coordinate_imag == prev_pp_ptr->coordinate_imag) {
+            prev_pp_ptr->t.at(1) = i;
+        }
+        else {
+          new_pp.t = {i,i};
+          new_pp.id = id_;
+          new_pp.pp_vec_index = pp_vec.size();
+          pp_vec.push_back(new_pp);
+        }
+    }
+    spdlog::debug("Path {} is represented by {} points on the map (before connecting)", id_, pp_vec.size());
+    return pp_vec;
 }
 
 auto Path::print_data() -> void {
@@ -80,3 +114,8 @@ auto Path::save_data() -> void {
         data_file.close();
     }
 }
+
+auto Path::get_point(uint32_t t) -> state_type {
+    return v_.at(t);
+}
+

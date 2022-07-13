@@ -25,7 +25,8 @@ auto main(int argc, char *argv[]) -> int {
 
     spdlog::set_level(spdlog::level::debug);
     spdlog::info("Welcome to Networks!");
-    Network net(H_c3, 0);
+    double theta = 0.01;
+    Network net(H_c3, theta);
     net.print_ramification_points();
     net.evolution_step();
 

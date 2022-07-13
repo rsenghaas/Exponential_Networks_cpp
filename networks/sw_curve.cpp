@@ -4,6 +4,13 @@ auto SW_curve::compute_derivatives() -> void {
     dH_dx_ = H_.diff(x_);
     dH_dy_ = H_.diff(y_);
     d2H_dy2_ = H_.diff(y_, 2);
+    std::stringstream H_ss, dH_dx_ss, dH_dy_ss, d2H_dy2_ss;
+    H_ss << H_;
+    dH_dx_ss << dH_dx_;
+    dH_dy_ss << dH_dy_;
+    d2H_dy2_ss << d2H_dy2_;
+    spdlog::info("The Network is initialized with H = {}.", H_ss.str());
+    spdlog::info("The derivatives are calculated as:\n * dH/dx = {}\n * dH/dy = {}\n * d²H/dy² = {}.", dH_dx_ss.str(), dH_dy_ss.str(), d2H_dy2_ss.str());
 }
 
 auto SW_curve::eval_H(const cplx &x, const cplx &y) -> cplx {
@@ -31,10 +38,7 @@ auto SW_curve::eval_d2H_dy2(const cplx &x, const cplx &y) -> cplx {
 }
 
 auto SW_curve::get_branch_points() -> std::vector<cplx> {
-    std::vector<cplx> dummy{22.0/7};
     GiNaC::ex disc = discriminant(H_, y_);
-    
-    // GiNaC::ex f(GiNaC::pow(x_, 3) * 3 + x_ - 1);
     std::vector<cplx> branch_points = roots(disc, x_);
     return branch_points;
 }
@@ -67,19 +71,27 @@ auto SW_curve::get_fiber(const cplx &x) -> std::vector<cplx> {
     return fiber;
 }
 
-auto SW_curve::match_fiber(std::vector<state_type>::iterator v_it) -> void {
-    cplx x = v_it->at(kIndexX);
+auto SW_curve::match_fiber(state_type &v) -> void {
+    cplx x = v.at(kIndexX);
     std::vector<cplx> fiber = get_fiber(x);
-    for (auto it = std::next(v_it->begin()); it != v_it->end(); ++it) {
-        cplx nearest_fiber = fiber.at(0);
-        for (auto &f : fiber) {
-            if (std::abs(std::exp(*it) - f) < std::abs(std::exp(*it) - nearest_fiber))
-            {
-                nearest_fiber = f;
-            }
+    cplx nearest_fiber_y1 = fiber.at(0);
+    cplx nearest_fiber_y2 = fiber.at(0);
+    for (auto &f : fiber) {
+        if (std::abs(std::exp(v.at(kIndexY1)) - f) < std::abs(std::exp(v.at(kIndexY1)) - std::exp(nearest_fiber_y1)))
+        {
+            nearest_fiber_y1 = std::log(f);
         }
-        *it = std::log(nearest_fiber) + 2 * std::numbers::pi * static_cast<int>(((*it  + J*std::numbers::pi) / (2.0* J*std::numbers::pi)).real());
+        if (std::abs(std::exp(v.at(kIndexY2)) - f) < std::abs(std::exp(v.at(kIndexY2)) - std::exp(nearest_fiber_y2)))
+        {
+            nearest_fiber_y2 = std::log(f);
+        }
     }
+    cplx dv_y1 = v.at(kIndexY1) - nearest_fiber_y1;
+    cplx dv_y2 = v.at(kIndexY2) - nearest_fiber_y2;
+    uint32_t k1 = static_cast<uint32_t>(std::round(((dv_y1) / (2*pi*J)).real()));
+    uint32_t k2 = static_cast<uint32_t>(std::round(((dv_y2 + J*pi) / (2*pi*J)).real()));
+    v.at(kIndexY1) = nearest_fiber_y1 + 2*pi*J * static_cast<double>(k1);
+    v.at(kIndexY2) = nearest_fiber_y2 + 2*pi*J * static_cast<double>(k2);
     return;
 }
 

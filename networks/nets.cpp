@@ -6,7 +6,7 @@ auto Network::start_path() -> void {
     for (auto &r : ramification_points_) {
         cplx b = r.at(kIndexX);
         cplx y = r.at(kIndexY);
-        spdlog::debug("Numerical Check: H(b, y) = {}\n.", 
+        spdlog::debug("Numerical Check: H(b, y) = {}.", 
             complex_to_string(curve_->eval_H(b, y)));
         
         state_type start_state;
@@ -16,59 +16,62 @@ auto Network::start_path() -> void {
         
         // Compute the expansion around a branch point.
         // TODO: I should move this to the SW_curve class and compute it generally (kappa = 1 / n! d^n H / dy^n * (1 / d H / dx))
-        cplx kappa = -1.0 / 2 * curve_->eval_d2H_dy2(b, y) * curve_->eval_dH_dx(b,y);
-        cplx dx = std::pow(3.0 / 4 * std::pow(kappa, 1.0/2) * y * b * std::exp(J*theta_) * kInitialStepSize, 2.0 / 3);  // ! This is only valid for exponential networks.
-
-        cplx dy = 3.0 / 4 * (y * b * std::exp(J*theta_) * kInitialStepSize) / dx;
+        cplx kappa = -1.0 / 2 * curve_->eval_d2H_dy2(b, y) / curve_->eval_dH_dx(b,y);
+        // spdlog::debug("kappa = {}", complex_to_string(kappa));
+        
+        cplx dx;
+        cplx dy;
         for(uint32_t k = 0; k < 3; k++) {
             std::vector<state_type> v;
             std::vector<double> masses;
+            state_type next_state;
+
             v.push_back(start_state);
             masses.push_back(0);
 
-            state_type next_state;
-            
-            spdlog::debug("(Zeta_3)^{} = {}.", k, complex_to_string(std::pow(kZeta3, k)));
-            next_state.at(kIndexX) = b + std::pow(kZeta3, k) * dx;
-            next_state.at(kIndexY1) = std::log(y + std::pow(kZeta3, k) * dy);
-            next_state.at(kIndexY2) = std::log(y - std::pow(kZeta3, k) * dy);
+            dx = std::pow(std::pow(3.0 / 4 * std::pow(kappa, 1.0/2) * y * b * std::exp(J*theta_) * kInitialStepSize, 2.0), 1.0 / 3) * std::pow(kZeta3, k);  // ! This is only valid for exponential networks.
+            dy = 3.0 / 4.0 * y * b * std::exp(J*theta_) * kInitialStepSize / dx;
+
+            next_state.at(kIndexX) = b + dx;
+            next_state.at(kIndexY1) = start_state.at(kIndexY1) + dy / y;
+            next_state.at(kIndexY2) = start_state.at(kIndexY2) - dy / y;
+            curve_->match_fiber(v.back());
+
             determine_sign(start_state, next_state);
             v.push_back(next_state);
             
+            spdlog::debug("Numerical Check: \n |H(x, y_1)| = {}\n |H(x, y_2)| = {}.", 
+                complex_to_string(std::abs(curve_->eval_H(v.back().at(kIndexX), std::exp(v.back().at(kIndexY1))))), 
+                complex_to_string(std::abs(curve_->eval_H(v.back().at(kIndexX), std::exp(v.back().at(kIndexY2)))))); 
 
             cplx dlog_y1 = next_state.at(kIndexY1) - start_state.at(kIndexY1);
             cplx dlog_y2 = next_state.at(kIndexY2) - start_state.at(kIndexY2);
             state_type dv{dx, dlog_y1,dlog_y2};
             masses.push_back(compute_dm(next_state, dv));
-            
-            
-            for(uint32_t i = 0; i < kInitialEulerSteps; i++) {
-                ODE_euler_step(curve_, v, masses);
+            // First step is done.
+  
+            // Doing some runge kutta steps before going into the boost::odeint integration.
+            for(uint32_t i = 0; i < kInitialSteps; i++) {
+                ODE_runge_kutta_step(curve_, v, masses, kInitialStepSize, theta_);
             }
-            curve_->match_fiber(std::prev(v.end()));
+
             Path path(v, masses, new_paths_.size());
             new_paths_.push_back(std::move(path));
             
-            // new_paths_.back().print_data();
-            std::vector<cplx> fiber = curve_->get_fiber(v.back().at(kIndexX));
-            spdlog::debug("Fiber over x = {} is:", complex_to_string(v.back().at(kIndexX)));
-            for (auto& f : fiber) {
-                spdlog::debug("{}", complex_to_string(f));
-            }
-            spdlog::debug("Approximation: {} {}", complex_to_string(std::exp(v.back().at(kIndexY1))), complex_to_string(std::exp(v.back().at(kIndexY2))));
-            
             spdlog::debug("Path {} appended.", new_paths_.back().id_);
-            spdlog::debug("Numerical Check: \n H(x, y_1) = {}\n H(x, y_2) = {}.", 
+            spdlog::debug("Numerical Check: \n |H(x, y_1)| = {}\n |H(x, y_2)| = {}.", 
             complex_to_string(std::abs(curve_->eval_H(v.back().at(kIndexX), std::exp(v.back().at(kIndexY1))))), 
             complex_to_string(std::abs(curve_->eval_H(v.back().at(kIndexX), std::exp(v.back().at(kIndexY2))))));   
+  
         }
+        spdlog::debug("Paths are started.");
     }
 }
 
 auto Network::evolution_step() -> void {
     std::vector<future_type> futures;
     for(auto & new_path : new_paths_) {
-        futures.emplace_back(new_path.integrate(curve_));
+        futures.emplace_back(new_path.integrate(curve_, theta_));
     }
     auto new_path_it = new_paths_.begin();
     for (auto &f : futures) {
@@ -76,13 +79,141 @@ auto Network::evolution_step() -> void {
             spdlog::debug("Iterator in future loop overshoots!");
         }
         new_path_it->update(std::ref(f));
-        //! Only for Testing purposes!
+        new_path_it->compute_map_points();
+        for (auto pp_it = new_path_it->pp_vec.begin(); pp_it != std::prev(new_path_it->pp_vec.end()); ++pp_it) {
+            if(!handle_new_intersections(map_.draw_line(*pp_it, *std::next(pp_it)), pp_it, new_path_it)) {
+                spdlog::debug("Path {} crashed into other path", new_path_it->id_);
+                break;
+            }
+        }
+
         new_path_it->save_data();
         evolved_paths_.push_back(std::move(*new_path_it));
-        new_path_it++;
         
+        new_path_it++;
+    }
+    // map_.print_map_data();
+    for (auto& inter : new_intersections_) {
+        print_intersection(inter);
     }
     new_paths_.clear();
+}
+
+
+
+//! This is somewhat misplaced.
+auto neighbour_pixel(std::array<int32_t, 2> coord_arr1, std::array<int32_t, 2> coord_arr2) -> bool {
+    if(std::max(std::abs(coord_arr1.at(kIndexCoordReal) - coord_arr2.at(kIndexCoordReal)), 
+                std::abs(coord_arr1.at(kIndexCoordImag) - coord_arr2.at(kIndexCoordImag))) > 1) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+auto compare_states(state_type v1, state_type v2) -> bool {
+  if (std::abs(v1.at(kIndexY1) - v2.at(kIndexY2)) < kFiberCompTolerance && std::abs(v1.at(kIndexY2) - v2.at(kIndexY1)) < kFiberCompTolerance) {
+    return true;
+  }
+  if (std::abs(v1.at(kIndexY1) - v2.at(kIndexY1)) < kFiberCompTolerance && std::abs(v1.at(kIndexY2) - v2.at(kIndexY2)) < kFiberCompTolerance) {
+    return true;
+  }
+  return false;
+}
+
+// This will either become a bool or and uint32_t to return some flags.
+auto Network::handle_new_intersections(std::vector<std::vector<path_point>> intersection_candidates, std::vector<path_point>::iterator current_pp_it, std::vector<Path>::iterator current_path_it) -> bool {
+    for (auto& ic : intersection_candidates) {
+      spdlog::debug("Intersection candidate at ({},{}) where x = {}.", ic.front().coordinate_real, ic.front().coordinate_imag, complex_to_string(path_point_to_complex(ic.at(0))));
+      for (auto& pp : ic) {
+      // spdlog::debug("Found intersection of {} and {} found", pp.id, current_pp_it->id);
+        bool candidate_inserted = false;
+        std::array<int32_t, 2> coord_arr{pp.coordinate_real, pp.coordinate_imag};
+        for (auto& prev_ic : new_intersections_) {
+            if (pp.id != prev_ic.ids.at(kIndexFirstPath) || current_pp_it->id != prev_ic.ids.at(kIndexSecondPath)) {
+                // spdlog::debug("Id check failed!");
+                // print_intersection(prev_ic);
+                // print_path_point(pp);
+                // print_path_point(*current_pp_it);
+                continue;
+            }
+            // spdlog::debug("Id check passed.");
+            if (!neighbour_pixel(prev_ic.coordinates.back(), coord_arr)) {
+                // spdlog::debug("Neighbour check failed.");
+                // print_intersection(prev_ic);
+                // print_path_point(pp);
+                // print_path_point(*current_pp_it);
+                continue;
+            }
+            // spdlog::debug("Neighbour check passed.");
+            if ((prev_ic.times.at(kIndexFirstPath).at(kIndexStartTime) != pp.t.at(kIndexEndTime) + 1 && prev_ic.times.at(kIndexFirstPath).at(kIndexStartTime) != pp.t.at(kIndexEndTime)
+                  && prev_ic.times.at(kIndexFirstPath).at(kIndexEndTime) != pp.t.at(kIndexStartTime) - 1 && prev_ic.times.at(kIndexFirstPath).at(kIndexEndTime) != pp.t.at(kIndexStartTime))
+                  || prev_ic.times.at(kIndexSecondPath).at(kIndexEndTime) != current_pp_it->t.at(kIndexStartTime) -1) 
+            {
+                // spdlog::debug("Times check failed.");
+                // print_intersection(prev_ic);
+                // print_path_point(pp);
+                // print_path_point(*current_pp_it);
+                // continue;
+            }
+            // spdlog::debug("Time check passed.");
+            prev_ic.coordinates.push_back(coord_arr);
+            prev_ic.times.at(kIndexSecondPath).at(kIndexEndTime) = current_pp_it->t.at(kIndexEndTime);
+            if (prev_ic.times.at(kIndexFirstPath).at(kIndexStartTime) == pp.t.at(kIndexEndTime) + 1 || prev_ic.times.at(kIndexFirstPath).at(kIndexStartTime) == pp.t.at(kIndexEndTime)) {
+                prev_ic.times.at(kIndexFirstPath).at(kIndexStartTime) = pp.t.at(kIndexStartTime);
+            } else {
+                prev_ic.times.at(kIndexFirstPath).at(kIndexEndTime) = pp.t.at(kIndexEndTime);
+            }
+            candidate_inserted = true;
+            break;
+        }
+        // The Path id's are always ordered by size.
+        if (!candidate_inserted) {
+            state_type v1;
+            spdlog::debug("Start initialize path points.");
+            if (evolved_paths_.size() == pp.id) {
+                v1 = current_path_it->get_point(pp.t.at(kIndexStartTime));
+            } else {
+                v1 = evolved_paths_.at(pp.id).get_point(pp.t.at(kIndexStartTime));
+            }
+            state_type v2 = current_path_it->get_point(current_pp_it->t.at(kIndexStartTime));
+            v1.at(kIndexX) = path_point_to_complex(pp);
+            v2.at(kIndexX) = path_point_to_complex(pp);
+            spdlog::debug("Matching fibers.");
+            print_state_type(v1);
+            print_state_type(v2);
+            curve_->match_fiber(v1);
+            curve_->match_fiber(v2);
+            spdlog::debug("After matching");
+            print_state_type(v1);
+            print_state_type(v2);
+            spdlog::debug("Compare paths.");
+            if (compare_states(v1, v2)) {
+                spdlog::debug("\nOverlapping paths.\n");
+                print_path_point(pp);
+                print_path_point(*current_pp_it);
+                return false;
+            }
+            spdlog::debug("Candidate created.");
+            intersection new_candidate;
+            new_candidate.ids = std::array<uint32_t, 2>{pp.id, current_pp_it->id};
+            new_candidate.coordinates.push_back(coord_arr);
+            new_candidate.times.at(kIndexFirstPath) = pp.t;
+            new_candidate.times.at(kIndexSecondPath) = current_pp_it->t;
+            new_intersections_.push_back(new_candidate);
+        }
+      }
+    }
+    return true;
+}
+
+auto compute_intersection_points() -> void() {
+    for (auto& ic : new_intersections_) {
+      for (auto it = ic.coordinates.begin(); it != std::prev(ic.coordinates.end(); it++) {
+
+      }
+    }
 }
 
 auto Network::determine_sign(const state_type &r, state_type &v) -> void {
@@ -106,3 +237,5 @@ auto Network::print_ramification_points() -> void {
             << std::endl;
     }
 }
+
+

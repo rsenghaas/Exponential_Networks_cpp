@@ -6,10 +6,12 @@
 #include <array>
 #include <vector>
 #include <cstdint>
+#include <cmath>
 #include <limits>
 #include <mutex>
 #include <numbers>
 #include <boost/range/combine.hpp>
+#include <sstream>
 
 #include "magic_numbers.h"
 #include "type_util.hpp"
@@ -38,7 +40,7 @@ class SW_curve {
         auto get_ramification_points() -> std::vector<std::array<cplx, 2>>;
         auto get_fiber(const cplx &x) -> std::vector<cplx>;
         auto get_branched_sheet(const cplx &x) -> cplx;
-        auto match_fiber(std::vector<state_type>::iterator v_it) -> void;
+        auto match_fiber(state_type &v) -> void;
 
         std::mutex sw_mutex;
 

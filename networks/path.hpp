@@ -16,7 +16,6 @@
 #include "magic_numbers.h"
 #include "sw_curve.hpp"
 #include "ode_integrator.hpp"
-#include "format_util.hpp"
 
 class Path {
   public:
@@ -28,12 +27,17 @@ class Path {
     }  
     auto get_endpoint() -> state_type;
     auto update(future_type& future) -> void;
-    auto integrate(std::shared_ptr<SW_curve> pCurve) -> future_type;
+    auto integrate(std::shared_ptr<SW_curve> pCurve, double theta) -> future_type;
     
+    auto compute_map_points() -> std::vector<path_point>;
 
+    auto get_point(uint32_t t) -> state_type;
     auto print_data() -> void;
     auto save_data() -> void;
+
     uint32_t id_;
+    std::vector<path_point> pp_vec;
+
   private:
     auto append_data(std::vector<state_type>& v, std::vector<double>& masses) -> void;
     std::vector<state_type> v_; 

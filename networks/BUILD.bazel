@@ -3,19 +3,20 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_import")
 cc_library(
     name = "util",
     srcs = [
-        "format_util.cpp",
         "type_util.cpp",
     ],
     hdrs =[
         "type_util.hpp",
         "magic_numbers.h",
-        "format_util.hpp",
         "files.hpp",
     ],
     copts= [
         "-std=c++20",
         "-O3",
     ],
+    deps = [
+        "@spdlog",
+    ]
 )
 
 cc_library(
@@ -50,7 +51,6 @@ cc_library(
         "sw_curve.hpp",
         "magic_numbers.h",
         "ode_integrator.hpp",
-        "format_util.hpp",
         ],
     copts= [
         "-std=c++20",
@@ -85,6 +85,26 @@ cc_library(
 )
 
 cc_library(
+  name = "maps",
+  srcs = [
+      "maps.cpp",
+  ],
+  hdrs = [
+      "maps.hpp",
+      "type_util.hpp",
+      "magic_numbers.h",
+  ],
+  copts = [
+      "-std=c++20",
+      "-O3",
+    ],
+    deps = [
+        ":util",
+        "@spdlog",
+    ]
+)
+
+cc_library(
     name = "nets",
     srcs = [
         "nets.cpp",
@@ -93,12 +113,17 @@ cc_library(
         "ode_integrator.hpp",
         "nets.hpp",
         "sw_curve.hpp",
+        "maps.hpp",
         "path.hpp",
-        "format_util.hpp",
         "type_util.hpp",
-        "magic_numbers.h"
+        "magic_numbers.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O3",
     ],
     deps = [
+        ":maps",
         ":path",
         ":sw_curve",
         ":util",
@@ -120,6 +145,7 @@ cc_binary(
         "-lcln",
     ],
     deps = [
+        ":maps",
         ":nets",
         ":util",
         ":path",

@@ -44,7 +44,7 @@ auto eval_ex_to_complex(const GiNaC::ex &f, const GiNaC::symbol &x, const cplx &
 }
 
 auto roots(const GiNaC::ex &f, const GiNaC::symbol &x) -> std::vector<cplx> {
-    spdlog::debug("Enter zero search.");
+    // spdlog::debug("Enter zero search.");
     GiNaC::ex Poly = f.expand(); 
     const uint32_t deg = Poly.degree(x);
     Poly = Poly / Poly.lcoeff(x);
