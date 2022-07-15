@@ -37,10 +37,10 @@ const uint32_t kZerosMaxIterations = 200;
 const uint32_t kLineStepsPerUnit = 20;
 
 // Map constants.
-const uint32_t kMapResolutionReal = 2000;
-const uint32_t kMapResolutionImag = 2000;
-const std::array<double,2> kMapRangeReal = {-2.0, 2.0};
-const std::array<double,2> kMapRangeImag = {-2.0, 2.0};
+const uint32_t kMapResolutionReal = 3000;
+const uint32_t kMapResolutionImag = 3000;
+const std::array<double,2> kMapRangeReal = {-5.0, 5.0};
+const std::array<double,2> kMapRangeImag = {-4.0, 4.0};
 
 
 // ODE integration constants.

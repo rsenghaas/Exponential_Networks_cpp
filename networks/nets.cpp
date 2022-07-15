@@ -193,7 +193,7 @@ auto Network::handle_new_intersections(std::vector<std::vector<path_point>> inte
             print_state_type(v2);
             spdlog::debug("Compare paths.");
             if (compare_states(v1, v2)) {
-                spdlog::debug("\nOverlapping paths.\n");
+                spdlog::debug("Overlapping paths.");
                 print_path_point(pp);
                 print_path_point(*current_pp_it);
                 return false;
@@ -268,7 +268,7 @@ auto Network::compute_intersection_points() -> void {
         if (B_times0 != 0) {B_times0--;}
         uint32_t B_times1 = ic.times.at(kIndexSecondPath).at(kIndexEndTime) + 1;
         spdlog::debug("Range for A: [{},{}], B: [{},{}]", A_times0, A_times1, B_times0, B_times1); 
-        [&] { 
+        bool success = [&] -> bool { 
             spdlog::debug("In lambda function.");
             for (uint32_t t_A = A_times0; t_A <= A_times1; t_A++) {
                 for (uint32_t t_B = B_times0; t_B <= B_times1; t_B++) {
@@ -282,12 +282,18 @@ auto Network::compute_intersection_points() -> void {
                       s.append(complex_to_string(z));
                       
                       spdlog::debug("Return from double loop");
-                      return;  // Return from lambda; this just exits the double loop!
+                      return true;  // Return from lambda; this just exits the double loop!
                   }
                 }
             }
+            return false;
         }();
+        if (!success) {
+            spdlog::debug("No intersection found!");
+            print_intersection(ic);
+        }
     }
+    spdlog::debug("{}", new_intersections_.size());
     save_string_to_file("data/intersection_data/test.csv", s);
 }
 
