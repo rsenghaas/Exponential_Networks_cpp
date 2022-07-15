@@ -33,4 +33,3 @@ else:
     plt.plot(x_data.real, x_data.imag)
     plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
 
-# 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
