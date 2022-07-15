@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <fmt/core.h>
 
 #include "Eigen/Dense"
 
@@ -230,7 +231,7 @@ auto save_string_to_file(std::string filename, std::string s) {
 
 
 auto line_intersection(std::array<cplx,2> A, std::array<cplx,2> B, cplx& z) -> bool {
-    spdlog::debug("Compute line intersection.");
+    // spdlog::debug("Compute line intersection.");
     Eigen::Matrix2d M;
     M(0,0) = A.at(1).real() - A.at(0).real();
     M(1,0) = A.at(1).imag() - A.at(0).imag();
@@ -255,6 +256,7 @@ auto line_intersection(std::array<cplx,2> A, std::array<cplx,2> B, cplx& z) -> b
 auto Network::compute_intersection_points() -> void {
     spdlog::debug("Computing the precise intersections!");
     std::string s = "";
+    uint32_t found_intersections = 0;
     for (auto& ic : new_intersections_) {
         // print_intersection(ic);
         cplx z;
@@ -267,33 +269,55 @@ auto Network::compute_intersection_points() -> void {
         uint32_t B_times0 = ic.times.at(kIndexSecondPath).at(kIndexStartTime);
         if (B_times0 != 0) {B_times0--;}
         uint32_t B_times1 = ic.times.at(kIndexSecondPath).at(kIndexEndTime) + 1;
-        spdlog::debug("Range for A: [{},{}], B: [{},{}]", A_times0, A_times1, B_times0, B_times1); 
-        bool success = [&] -> bool { 
-            spdlog::debug("In lambda function.");
+        // spdlog::debug("Range for A: [{},{}], B: [{},{}]", A_times0, A_times1, B_times0, B_times1); 
+        bool success = [&] () -> bool { 
             for (uint32_t t_A = A_times0; t_A <= A_times1; t_A++) {
                 for (uint32_t t_B = B_times0; t_B <= B_times1; t_B++) {
                   std::array<cplx,2> A = {evolved_paths_.at(id_A).get_point(t_A).at(kIndexX), evolved_paths_.at(id_A).get_point(t_A + 1).at(kIndexX)};
                   std::array<cplx,2> B = {evolved_paths_.at(id_B).get_point(t_B).at(kIndexX), evolved_paths_.at(id_B).get_point(t_B + 1).at(kIndexX)};
-                  spdlog::debug("In double loop");
                   if (line_intersection(A, B, z)) {
                       if (s.size() != 0) {
                           s.append(",");
                       }
                       s.append(complex_to_string(z));
-                      
-                      spdlog::debug("Return from double loop");
+                      found_intersections++;
                       return true;  // Return from lambda; this just exits the double loop!
                   }
                 }
             }
             return false;
         }();
+        uint32_t unsuccess_id = 0;
         if (!success) {
             spdlog::debug("No intersection found!");
             print_intersection(ic);
+            spdlog::debug("Points for path A.");
+            std::string s_A = "";
+            std::string s_B = "";
+            for (uint32_t t_A = A_times0; t_A <= A_times1 + 1; t_A++) {
+                if (s_A.size() != 0) {
+                    s_A.append(",");
+                }
+                cplx A = evolved_paths_.at(id_A).get_point(t_A).at(kIndexX);
+                spdlog::debug("{}", complex_to_string(A));
+                s_A.append(complex_to_string(A));
+            }
+            spdlog::debug("Points for path B.");
+            for (uint32_t t_B = B_times0; t_B <= B_times1 + 1; t_B++) {
+                if (s_B.size() != 0) {
+                    s_B.append(",");
+                }
+                cplx B = evolved_paths_.at(id_B).get_point(t_B).at(kIndexX);
+                spdlog::debug("{}", complex_to_string(B));
+                s_B.append(complex_to_string(B));
+            }
+            std::string s_combined;
+            s_combined = fmt::format("{}\n{}",s_A, s_B);
+            save_string_to_file(fmt::format("data/intersection_data/unsuccessful_{}.csv", unsuccess_id), s_combined);
+            unsuccess_id++;
         }
     }
-    spdlog::debug("{}", new_intersections_.size());
+    spdlog::debug("Intersection candidates :{}, Intersections found: {}", new_intersections_.size(), found_intersections);
     save_string_to_file("data/intersection_data/test.csv", s);
 }
 
