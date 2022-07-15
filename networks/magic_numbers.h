@@ -29,7 +29,7 @@ const double kNumOffset = 1e-10;
 const double kZerosPrecisions = 1e-15;
 const double kOdeAbsError = 1e-13;
 const double kOdeRelError = 1e-13;
-const double kFiberCompTolerance = 1e-10;
+const double kFiberCompTolerance = 1e-8;
 
 // Iteration constants.
 const uint32_t kInitialSteps = 500;

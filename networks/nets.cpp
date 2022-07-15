@@ -1,5 +1,10 @@
 #include "nets.hpp"
 
+#include <sstream>
+#include <fstream>
+
+#include "Eigen/Dense"
+
 // * Log has range (-i*pi,i*pi]
 
 auto Network::start_path() -> void {
@@ -93,9 +98,7 @@ auto Network::evolution_step() -> void {
         new_path_it++;
     }
     // map_.print_map_data();
-    for (auto& inter : new_intersections_) {
-        print_intersection(inter);
-    }
+    compute_intersection_points();
     new_paths_.clear();
 }
 
@@ -113,10 +116,10 @@ auto neighbour_pixel(std::array<int32_t, 2> coord_arr1, std::array<int32_t, 2> c
 }
 
 auto compare_states(state_type v1, state_type v2) -> bool {
-  if (std::abs(v1.at(kIndexY1) - v2.at(kIndexY2)) < kFiberCompTolerance && std::abs(v1.at(kIndexY2) - v2.at(kIndexY1)) < kFiberCompTolerance) {
+  if (std::abs((v1.at(kIndexY1) - v1.at(kIndexY2)) - (v2.at(kIndexY2) - v2.at(kIndexY1))) < kFiberCompTolerance) {
     return true;
   }
-  if (std::abs(v1.at(kIndexY1) - v2.at(kIndexY1)) < kFiberCompTolerance && std::abs(v1.at(kIndexY2) - v2.at(kIndexY2)) < kFiberCompTolerance) {
+  if (std::abs((v1.at(kIndexY1) - v1.at(kIndexY2)) - (v2.at(kIndexY1) - v2.at(kIndexY2))) < kFiberCompTolerance) {
     return true;
   }
   return false;
@@ -208,12 +211,84 @@ auto Network::handle_new_intersections(std::vector<std::vector<path_point>> inte
     return true;
 }
 
-auto compute_intersection_points() -> void() {
-    for (auto& ic : new_intersections_) {
-      for (auto it = ic.coordinates.begin(); it != std::prev(ic.coordinates.end(); it++) {
+auto Network::add_new_path() -> void {
 
-      }
+}
+
+auto save_string_to_file(std::string filename, std::string s) {
+    std::fstream data_file;
+    data_file.open(filename, std::ios::out);
+    if(!data_file) {
+      spdlog::debug("{} could not be created.", filename);
+    } else {
+        data_file << s;
     }
+    spdlog::debug("Data saved to {}.", filename);
+    data_file.close();
+}
+
+
+
+auto line_intersection(std::array<cplx,2> A, std::array<cplx,2> B, cplx& z) -> bool {
+    spdlog::debug("Compute line intersection.");
+    Eigen::Matrix2d M;
+    M(0,0) = A.at(1).real() - A.at(0).real();
+    M(1,0) = A.at(1).imag() - A.at(0).imag();
+    M(0,1) = B.at(1).real() - B.at(0).imag();
+    M(1,1) = B.at(1).imag() - B.at(0).imag();
+    Eigen::Vector2d A0;
+    Eigen::Vector2d B0;
+    A0 << A.at(0).real(), A.at(0).imag();
+    B0 << B.at(0).real(), B.at(0).imag();
+    if (M.determinant() != 0) {
+        Eigen::Matrix2d M_inv = M.inverse();
+        Eigen::Vector2d t = M_inv * (B0 - A0);
+        if ((t(0) >= 0 && t(0) <=1) && (t(1) >=0 && t(1) <= 1)) {
+            z = (A0(0) + t(0) * M(0,0)) + J * (A0(1) + t(1) * M(1,0));
+            spdlog::debug("Here is an intersection: {}!", complex_to_string(z));
+            return true;
+        }
+    }
+    return false;
+}
+
+auto Network::compute_intersection_points() -> void {
+    spdlog::debug("Computing the precise intersections!");
+    std::string s = "";
+    for (auto& ic : new_intersections_) {
+        // print_intersection(ic);
+        cplx z;
+        uint32_t id_A = ic.ids.at(kIndexFirstPath);
+        uint32_t id_B = ic.ids.at(kIndexSecondPath);
+
+        uint32_t A_times0 = ic.times.at(kIndexFirstPath).at(kIndexStartTime);
+        if (A_times0 != 0) {A_times0--;}
+        uint32_t A_times1 = ic.times.at(kIndexFirstPath).at(kIndexEndTime) + 1;
+        uint32_t B_times0 = ic.times.at(kIndexSecondPath).at(kIndexStartTime);
+        if (B_times0 != 0) {B_times0--;}
+        uint32_t B_times1 = ic.times.at(kIndexSecondPath).at(kIndexEndTime) + 1;
+        spdlog::debug("Range for A: [{},{}], B: [{},{}]", A_times0, A_times1, B_times0, B_times1); 
+        [&] { 
+            spdlog::debug("In lambda function.");
+            for (uint32_t t_A = A_times0; t_A <= A_times1; t_A++) {
+                for (uint32_t t_B = B_times0; t_B <= B_times1; t_B++) {
+                  std::array<cplx,2> A = {evolved_paths_.at(id_A).get_point(t_A).at(kIndexX), evolved_paths_.at(id_A).get_point(t_A + 1).at(kIndexX)};
+                  std::array<cplx,2> B = {evolved_paths_.at(id_B).get_point(t_B).at(kIndexX), evolved_paths_.at(id_B).get_point(t_B + 1).at(kIndexX)};
+                  spdlog::debug("In double loop");
+                  if (line_intersection(A, B, z)) {
+                      if (s.size() != 0) {
+                          s.append(",");
+                      }
+                      s.append(complex_to_string(z));
+                      
+                      spdlog::debug("Return from double loop");
+                      return;  // Return from lambda; this just exits the double loop!
+                  }
+                }
+            }
+        }();
+    }
+    save_string_to_file("data/intersection_data/test.csv", s);
 }
 
 auto Network::determine_sign(const state_type &r, state_type &v) -> void {
@@ -237,5 +312,4 @@ auto Network::print_ramification_points() -> void {
             << std::endl;
     }
 }
-
 

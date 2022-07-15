@@ -47,6 +47,7 @@ class Network {
         auto determine_sign(const state_type &r, state_type &v) -> void;
         
         auto move_to_evolved(std::vector<Path>::iterator) -> void;
+        auto add_new_path() -> void;
         std::vector<Path> new_paths_;
         std::vector<Path> evolved_paths_;
 

@@ -5,3 +5,6 @@ run --repo_env=BAZEL_CXXOPTS='-std=c++20'
 # We require bzlmod.
 build --experimental_enable_bzlmod
 run --experimental_enable_bzlmod
+
+build --repo_env=CXX=clang14
+run --repo_env=CXX=clang14

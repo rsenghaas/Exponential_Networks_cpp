@@ -8,7 +8,7 @@
 namespace fs = std::filesystem;
 
 const std::vector<std::string_view> directory_paths
-    {"data/path_data", "data/map_data", "graphics"};
+    {"data/path_data", "data/map_data", "data/intersection_data", "graphics"};
 
 auto create_directories() -> void {
     fs::path root_path = fs::path(getenv("HOME"));

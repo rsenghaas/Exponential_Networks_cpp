@@ -94,10 +94,10 @@ auto Path::print_data() -> void {
 
 auto Path::save_data() -> void {
     std::fstream data_file;
-    std::string file_name = fmt::format("data/path_data/path_data_{}.csv", id_);
-    data_file.open(file_name, std::ios::out);
+    std::string filename = fmt::format("data/path_data/path_data_{}.csv", id_);
+    data_file.open(filename, std::ios::out);
     if (!data_file) {
-        spdlog::debug("{} could not be created.", file_name);
+        spdlog::debug("{} could not be created.", filename);
     } else {
         for (const auto& zipped : boost::combine(v_, masses_)) {
             state_type line_v;
@@ -110,7 +110,7 @@ auto Path::save_data() -> void {
                 line_mass);
             data_file << output_line;
         }
-        spdlog::debug("Date saved to {}.", file_name);
+        spdlog::debug("Data saved to {}.", filename);
         data_file.close();
     }
 }

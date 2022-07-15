@@ -127,6 +127,7 @@ cc_library(
         ":path",
         ":sw_curve",
         ":util",
+        "@eigen_archive//:eigen",
         "@spdlog",
     ]
 )

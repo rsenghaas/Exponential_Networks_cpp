@@ -1,3 +1,15 @@
 workspace(name = "networks")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Eigen
+http_archive(
+    name = "eigen_archive",
+    build_file = "@//include:eigen.BUILD",
+    sha256 = "515b3c266d798f3a112efe781dda0cf1aef7bd73f6864d8f4f16129310ae1fdf",
+    strip_prefix = "eigen-b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b",
+    urls = [
+        "https://gitlab.com/libeigen/eigen/-/archive/b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b/eigen-b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b.tar.gz",
+        "https://storage.googleapis.com/mirror.tensorflow.org/gitlab.com/libeigen/eigen/-/archive/b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b/eigen-b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b.tar.gz",
+    ],
+)

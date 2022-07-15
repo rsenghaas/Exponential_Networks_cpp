@@ -4,9 +4,14 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 
+intersection_file = 'data/intersection_data/test.csv'
+intersection_data = np.loadtxt(intersection_file, delimiter=",", dtype=np.complex_)
+print(intersection_data)
+
 if sys.argv[1] == "all":
     s1 = 0
     fig = plt.figure()
+    plt.plot(intersection_data.real, intersection_data.imag, "ro")
     filename= f'data/path_data/path_data_{s1}.csv'
     path = Path(filename)
     while path.is_file():
@@ -27,3 +32,5 @@ else:
     x_data = data[:, 0]
     plt.plot(x_data.real, x_data.imag)
     plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
+
+# 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
