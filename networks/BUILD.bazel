@@ -5,7 +5,7 @@ cc_library(
     srcs = [
         "type_util.cpp",
     ],
-    hdrs =[
+    hdrs = [
         "type_util.hpp",
         "magic_numbers.h",
         "files.hpp",
@@ -15,6 +15,28 @@ cc_library(
         "-O3",
     ],
     deps = [
+        "@spdlog",
+    ]
+)
+
+cc_library(
+    name = "adhm",
+    srcs = [
+        "adhm.cpp",
+    ],
+    hdrs = [
+        "adhm.hpp",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O3",
+    ],
+    deps = [
+        ":maps",
+        ":path",
+        ":sw_curve",
+        ":util",
+        "@eigen_archive//:eigen",
         "@spdlog",
     ]
 )
@@ -150,6 +172,7 @@ cc_binary(
         ":nets",
         ":util",
         ":path",
+        ":adhm",
         ":ode_integrator",
         ":sw_curve",
         "@spdlog",

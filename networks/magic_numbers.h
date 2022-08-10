@@ -3,26 +3,24 @@
 
 // Magic numbers
 
-#include <cstdint>
-#include <string_view>
-#include <complex>
-#include <numbers> 
-#include <vector>
-#include <cmath>
 #include <array>
-#include <tuple>
+#include <cmath>
+#include <complex>
+#include <cstdint>
 #include <future>
-
-using namespace std::complex_literals;
+#include <numbers>
+#include <string_view>
+#include <tuple>
+#include <vector>
 
 //! This is very ugly and should be changed.
 constexpr std::string_view kDataDirectory = "Uni/Exponential_Networks";
 
 // Numerical constants.
 const double pi = std::numbers::pi;
-constexpr std::complex<double> J = std::complex<double>(0,1);
-const std::complex<double> kDummyRoot = std::complex<double>(1,0.3);
-const std::complex<double> kZeta3 = std::exp(2.0 *pi*J / 3.0);
+constexpr std::complex<double> J = std::complex<double>(0, 1);
+const std::complex<double> kDummyRoot = std::complex<double>(1, 0.3);
+const std::complex<double> kZeta3 = std::exp(2.0 * pi * J / 3.0);
 const double kNumOffset = 1e-10;
 
 // Precision constants.
@@ -37,16 +35,18 @@ const uint32_t kZerosMaxIterations = 200;
 const uint32_t kLineStepsPerUnit = 20;
 
 // Map constants.
-const uint32_t kMapResolutionReal = 3000;
-const uint32_t kMapResolutionImag = 3000;
-const std::array<double,2> kMapRangeReal = {-5.0, 5.0};
-const std::array<double,2> kMapRangeImag = {-4.0, 4.0};
-
+const uint32_t kMapResolutionReal = 1000;
+const uint32_t kMapResolutionImag = 1000;
+const std::array<double, 2> kMapRangeReal = {-4.0, 4.0};
+const std::array<double, 2> kMapRangeImag = {-3.0, 3.0};
 
 // ODE integration constants.
 const double kIntegratePeriod = 10.0;
 const double kInitialStepSize = 1e-6;
-const double kCutoff = 200.0;
+const double kD4Cutoff = 50.0;
+const double kCutoff = 50.0;
+const double kCutoffX = 3000;
+const double kCutoffY = 10000;
 const uint32_t kMaxSteps = 100000;
 
 // Datapoint index constants.

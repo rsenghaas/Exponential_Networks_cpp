@@ -2,30 +2,32 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from pathlib import Path
+import glob, os
+import pathlib
 
 intersection_file = 'data/intersection_data/test.csv'
-intersection_data = np.loadtxt(intersection_file, delimiter=",", dtype=np.complex_)
-print(intersection_data)
+intersection_data = np.array([]) #np.loadtxt(intersection_file, delimiter=",", dtype=np.complex_)
+
+def transform(z):
+    return z / ( 1/4 - z)
 
 if sys.argv[1] == "all":
-    s1 = 0
-    fig = plt.figure()
-    plt.plot(intersection_data.real, intersection_data.imag, "ro")
-    filename= f'data/path_data/path_data_{s1}.csv'
-    path = Path(filename)
-    while path.is_file():
-        s1 += 1
-        data = np.loadtxt(filename,delimiter=",", dtype=np.complex_)
+    fig = plt.figure(dpi=1000)
+    intersection_data = transform(intersection_data);
+    plt.plot(intersection_data.real, intersection_data.imag, "ro", markersize=1, markeredgewidth=0, markerfacecolor="red")
+    current_path = pathlib.Path(__file__).parent.resolve()
+    os.chdir('data/path_data')
+    for file in glob.glob("*.csv"):
+        data = np.loadtxt(file ,delimiter=",", dtype=np.complex_)
+        data = transform(data)
         x_data = data[:, 0]
-        plt.plot(x_data.real, x_data.imag)
-        filename= f'data/path_data/path_data_{s1}.csv'
-        path = Path(filename)
+        plt.plot(x_data.real, x_data.imag, linewidth=0.1)
+    os.chdir(current_path)
     plt.savefig('graphics/test_graphics.png', dpi=fig.dpi)
 
 else:
     s1 = int(sys.argv[1])
-    fig = plt.figure()
+    fig = plt.figure(dpi=1000)
     # for i in range(6):
     filename= f'data/path_data/path_data_{s1}.csv'
     data = np.loadtxt(filename,delimiter=",", dtype=np.complex_)
