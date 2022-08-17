@@ -2,12 +2,12 @@
 
 auto get_path_point(state_type v) -> path_point {
   path_point pp;
-  int32_t coord_real = static_cast<int32_t>(
+  auto coord_real = static_cast<int32_t>(
       (v.at(kIndexX).real() - kMapRangeReal.at(kIndexLowerBound)) /
       (kMapRangeReal.at(kIndexUpperBound) -
        kMapRangeReal.at(kIndexLowerBound)) *
       kMapResolutionReal);
-  int32_t coord_imag = static_cast<int32_t>(
+  auto coord_imag = static_cast<int32_t>(
       (v.at(kIndexX).imag() - kMapRangeImag.at(kIndexLowerBound)) /
       (kMapRangeImag.at(kIndexUpperBound) -
        kMapRangeImag.at(kIndexLowerBound)) *
@@ -19,7 +19,7 @@ auto get_path_point(state_type v) -> path_point {
 
 auto integrator_thread(std::shared_ptr<SW_curve> pCurve, const state_type& v0,
                        std::promise<std::vector<state_type>> v,
-                       std::promise<std::vector<double>> masses, double theta,
+                       std::promise<std::vector<double>> masses, double theta, 
                        double cutoff) -> void {
   spdlog::debug("Enter Integrator_thread");
   ODE_differential diff(std::move(pCurve), theta);
@@ -34,7 +34,7 @@ auto Path::get_endpoint() -> state_type { return v_.back(); }
 
 auto Path::append_data(std::vector<state_type>& v, std::vector<double>& masses)
     -> void {
-  // spdlog::debug("Path {} was integrated with {} steps.", id_, v.size());
+  spdlog::debug("Path {} was integrated with {} steps.", path_id_, v.size());
   double current_mass = masses_.back();
   std::transform(masses.begin(), masses.end(), masses.begin(),
                  [&](double m) { return m + current_mass; });
@@ -95,7 +95,9 @@ auto draw_line(path_point pp1, path_point pp2) -> std::vector<path_point> {
       (std::pow(std::pow(end_coord_real - start_coord_real, 2) +
                     std::pow(end_coord_imag - start_coord_imag, 2),
                 1.0 / 2)));
-
+  if (distance == 0) {
+    return line;
+  }
   for (int32_t counter = 0; counter <= distance; counter++) {
     ghost_coord_real = (1 - counter * 1.0 / distance) * (start_coord_real) +
                        counter * 1.0 / distance * (end_coord_real) +
@@ -103,14 +105,11 @@ auto draw_line(path_point pp1, path_point pp2) -> std::vector<path_point> {
     ghost_coord_imag = (1 - counter * 1.0 / distance) * (start_coord_imag) +
                        counter * 1.0 / distance * (end_coord_imag) +
                        1.0 / 2;  //
-    if (static_cast<int32_t>(ghost_coord_real + kNumOffset) !=
-            next_pp.coordinate_real ||
-        static_cast<int32_t>(ghost_coord_imag + kNumOffset) !=
-            next_pp.coordinate_imag) {
-      next_pp.coordinate_real =
-          static_cast<int32_t>(ghost_coord_real + kNumOffset);
-      next_pp.coordinate_imag =
-          static_cast<int32_t>(ghost_coord_imag + kNumOffset);
+
+    if (static_cast<int32_t>(ghost_coord_real + kNumOffset) != next_pp.coordinate_real ||
+        static_cast<int32_t>(ghost_coord_imag + kNumOffset) != next_pp.coordinate_imag) {
+      next_pp.coordinate_real = static_cast<int32_t>(ghost_coord_real + kNumOffset);
+      next_pp.coordinate_imag = static_cast<int32_t>(ghost_coord_imag + kNumOffset);
       line.push_back(next_pp);
     }
   }
@@ -126,19 +125,23 @@ auto Path::compute_map_points(std::vector<path_point>& pp_vec,
   start_pp.pp_vec_index = 0;
   pp_vec.push_back(start_pp);
   index_vec.push_back(0);
+  
   path_point new_pp;
   for (uint32_t i = 1; i < v_.size(); ++i) {
+    new_pp = get_path_point(v_.at(i));
     new_pp.t = {i, i};
     new_pp.id = path_id_;
     new_pp.pp_vec_index = pp_vec.size();
-    auto line = draw_line(pp_vec.back(), new_pp);
-    pp_vec.insert(std::end(pp_vec), std::begin(line), std::end(line));
-    index_vec.push_back(pp_vec.size() - 1);
+    if(new_pp.coordinate_real != pp_vec.back().coordinate_real || new_pp.coordinate_imag != pp_vec.back().coordinate_imag) {
+      auto line = draw_line(pp_vec.back(), new_pp);
+      pp_vec.insert(std::end(pp_vec), std::begin(line), std::end(line));
+      index_vec.push_back(pp_vec.size() - 1);
+    }
+    else {
+      pp_vec.back().t.at(kIndexEndTime)++;
+    }
   }
-}
-spdlog::debug(
-    "Path {} is represented by {} points on the map (before connecting)",
-    path_id_, pp_vec.size());
+  spdlog::debug("Path {} is represented by {} points on the map (before connecting)", path_id_, pp_vec.size());
 }
 
 auto Path::print_data() -> void {
@@ -175,3 +178,31 @@ auto Path::save_data() -> void {
 }
 
 auto Path::get_point(uint32_t t) -> state_type { return v_.at(t); }
+
+auto Path::truncate(uint32_t t_start, uint32_t t_end) -> void {
+    if(t_end <= t_start) {
+        spdlog::debug("End time greater than start time. Skip truncation.");
+        return;
+    }
+    spdlog::debug("Erasing");
+    spdlog::debug("Id: {}, v size: {}", path_id_, v_.size());
+    print_state_type(v_.at(t_start));
+    v_.erase(v_.begin() + t_end, v_.end());
+    spdlog::debug("{}", v_.size());
+    masses_.erase(masses_.begin() + t_end, masses_.end());
+    v_.erase(v_.begin(), v_.begin() + t_start);
+    masses_.erase(masses_.begin(), masses_.begin() + t_start);
+    double m0 = masses_.front();
+    for(auto& mass : masses_) {
+        mass -= m0;
+    }
+    print_state_type(v_.at(0));
+    spdlog::debug("Done erasing.");
+}
+
+auto Path::add_single_point(state_type pt) -> void {
+    state_type dv = pt + (-1 * v_.back());
+    v_.push_back(pt);
+    double dm = compute_dm(pt, dv);
+    masses_.push_back(masses_.back() + dm);
+}

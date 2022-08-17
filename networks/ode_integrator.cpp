@@ -12,7 +12,7 @@ auto rotate_dv(state_type &dv, const double theta) -> void {
   dv.at(kIndexY2) *= std::exp(J * theta);
 }
 
-auto ODE_euler_step(const std::shared_ptr<SW_curve> curve,
+auto ODE_euler_step(const std::shared_ptr<SW_curve>& curve,
                     std::vector<state_type> &v, std::vector<double> &masses,
                     const double step_size, double theta) -> void {
   state_type dv;
@@ -22,7 +22,7 @@ auto ODE_euler_step(const std::shared_ptr<SW_curve> curve,
   masses.push_back(masses.back() + compute_dm(v.back(), step_size * dv));
 }
 
-auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> curve,
+auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve>& curve,
                           std::vector<state_type> &v,
                           std::vector<double> &masses, const double step_size,
                           double theta) -> void {
@@ -47,12 +47,10 @@ auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> curve,
 
 auto ODE_integrator::integrate_ode(double cutoff) -> void {
   spdlog::debug("In ode integrator.");
-  spdlog::debug("{}", obs_.masses.back());
   auto stepper = make_controlled(kOdeAbsError, kOdeRelError,
                                  runge_kutta_cash_karp54<state_type>());
   uint32_t loop_counter = 0;
   while (obs_.masses.back() < cutoff && obs_.states.size() < kMaxSteps) {
-    spdlog::debug("In integrator loop.");
     if ((std::abs(v0_.at(kIndexX)) > kCutoffX ||
          std::abs(v0_.at(kIndexY1)) > kCutoffY ||
          std::abs(v0_.at(kIndexY2)) > kCutoffY ||

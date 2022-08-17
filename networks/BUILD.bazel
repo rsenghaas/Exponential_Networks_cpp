@@ -121,6 +121,7 @@ cc_library(
       "-O3",
     ],
     deps = [
+        ":path",
         ":util",
         "@spdlog",
     ]
@@ -169,7 +170,7 @@ cc_binary(
     ],
     deps = [
         ":maps",
-        ":nets",
+        # ":nets",
         ":util",
         ":path",
         ":adhm",

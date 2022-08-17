@@ -31,10 +31,11 @@ class Map {
   auto print_map_data() -> void;
   auto get_pixel_content(std::array<int32_t, 2> coordinates)
       -> std::vector<path_point>;
+  auto add_path(std::vector<path_point> pp_vec) -> void;
 
  private:
-  auto handle_intersection(const path_point& pp, const std::vector<path_point>& map_pp_vec, std::vector<intersection>& intersections) -> void;
-  std::map<std::array<int32_t, 2>, pixel> map_data_;
+  // auto handle_intersection(const path_point& pp, const std::vector<path_point>& map_pp_vec, std::vector<intersection>& intersections) -> void;
+  std::map<std::array<int32_t, 2>, std::vector<path_point>> map_data_;
 };
 
 class SinglePathMap {
@@ -48,10 +49,10 @@ class SinglePathMap {
   uint32_t path_id;
   std::vector<path_point> pp_vec;
   std::vector<uint32_t> index_vec;
-  std::vector<path_point> intersections;
+  std::vector<intersection> intersections;
 
  private:
   std::map<std::array<int32_t, 2>, std::vector<path_point>> map_data_;
-  };
+};
 
 #endif  // MAPS_HPP_

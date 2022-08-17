@@ -27,6 +27,7 @@ class ADHM {
 
  private:
   double theta_;
+  uint32_t next_id_{0};
 
   // SW_curve data.
   std::shared_ptr<SW_curve> curve_;
@@ -35,13 +36,15 @@ class ADHM {
   // Path stuff.
   auto start_paths() -> void;
   auto evolve_path(std::vector<Path>::iterator path_it, double cutoff) -> void;
-  auto add_new_path(state_type start_point, uint32_t path_id) -> void;
+  auto add_new_path(state_type start_point) -> void;
+  auto save_data(uint32_t id) -> void;
 
   std::vector<Path> new_paths_;
 
   // Map.
   Map map_;
   auto draw_map(std::vector<Path>::iterator path_it) -> void;
+  auto add_to_map(std::vector<Path>::iterator path_it) -> void;
 
   // Intersection stuff.
   auto handle_self_intersections(
@@ -50,6 +53,20 @@ class ADHM {
       std::vector<path_point>::iterator current_pp_it,
       std::vector<Path>::iterator current_path_it) -> bool;
   auto handle_new_intersections() -> void;
+  //WARN: This probably should go somewhere else, since this is generally associated to path and doesn't use any member variables.
+  //
+  auto self_intersection_handler(uint32_t id, bool truncate, uint32_t n, uint32_t intersection_number, bool shift) -> void;
+  auto self_intersections(std::vector<Path>::iterator path_it) -> std::vector<intersection>;
+  
+  auto two_path_intersection_handler(uint32_t id_A, uint32_t id_B, bool truncate_A, bool truncate_B, uint32_t n, uint32_t intersection_number, bool shift) -> void;
+  auto two_path_intersections(std::vector<Path>::iterator path_A_it, std::vector<Path>::iterator path_B_it) -> std::vector<intersection>;
+
+
+  auto compute_intersection_points(intersection& inter, 
+      std::vector<Path>::iterator path_A_it, 
+      std::vector<Path>::iterator path_B_it,
+      int32_t n,
+      state_type& new_state) -> bool;
 };
 
 #endif  // ADHM_BPS_HPP_

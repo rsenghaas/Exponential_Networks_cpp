@@ -9,6 +9,7 @@ intersection_file = 'data/intersection_data/test.csv'
 intersection_data = np.array([]) #np.loadtxt(intersection_file, delimiter=",", dtype=np.complex_)
 
 def transform(z):
+    # return z
     return z / ( 1/4 - z)
 
 if sys.argv[1] == "all":
@@ -23,7 +24,7 @@ if sys.argv[1] == "all":
         x_data = data[:, 0]
         plt.plot(x_data.real, x_data.imag, linewidth=0.1)
     os.chdir(current_path)
-    plt.savefig('graphics/test_graphics.png', dpi=fig.dpi)
+    plt.savefig('graphics/(1,2,1).png', dpi=fig.dpi)
 
 else:
     s1 = int(sys.argv[1])
