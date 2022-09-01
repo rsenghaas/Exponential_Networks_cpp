@@ -18,7 +18,7 @@ n=6
 ---
 
 * The network `(1,1,2,1,1)` shows the same anomaly as `(1,2,1,1)` what is expected since wrapping an extra
-(++/--) on the outside is kind of a trivial operation. \\
+(++/--) on the outside is kind of a trivial operation.
 * The network `(1,2,1,1,1)`is truely anomalous. One may expect to get different networks
 when appropriately resolving these new intersections.
 * The network `(1,2,1,2)` is anomalous as well. We should study resolutions of these anomalies.
@@ -42,13 +42,30 @@ Hence the following networks are expected to be non-anomalous:
   - (1,1,2,2,1)
   - (1,1,2,3)
 
-* The remaining, truely new networks are:
-  - (1,2,1,1,2) -> anomalous.
-  - (1,2,1,2,1) -> anomalous.
-  - (1,2,2,1,1) -> marginal.
-  - (1,2,2,2) -> nice.
+* The remaining, truly new networks are:
+  - (1,2,1,1,2) &rarr; anomalous.
+  - (1,2,1,2,1) &rarr; anomalous.
+  - (1,2,2,1,1) &rarr; marginal.
+  - (1,2,2,2) &rarr; nice.
 
+n=8
+---
 
+As before anomalies from lower networks carry over. Let's focus on new networks.
+* (1,2,1,1,1,1,1) &rarr; anomalous, the (-+, 1) path crosses 3 (++/--) strands, could have very interesting resolutions.
+* (1,2,2,1,1,1) &rarr; anomalous, but not the most outer way, so the resolution should be equivalen
+some lower n resolution.
+* (1,2,1,2,1,1) &rarr; we have the marginal (...,2,1,1) anomaly and a new true anomaly further out.
+* (1,2,1,1,2,1) &rarr; anomalous. This would correspond to a durfy square decomposition.
+* (1,2,1,1,1,2) &rarr; anomalous.
+Very long sequences tend to become anomalous.
+
+* (1,2,3,2) &rarr; nice.
+* (1,2,2,3) &rarr; nice.
+
+Proposition 1:
+--------------
+Increasing sequences are always non-anomalous.
 
 
 

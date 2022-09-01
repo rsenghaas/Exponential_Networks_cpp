@@ -27,7 +27,7 @@ if sys.argv[1] == "all":
     # plt.axis([-3.0, 3.0, -3.0, 3.0])
     plt.axis([-1.8, 0.1, -0.8, 0.8])
     plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
-    plt.savefig('graphics/n=6/(1,2,2,2).png', dpi=fig.dpi)
+    plt.savefig('graphics/n=8/(1,2,3,2).png', dpi=fig.dpi)
 
 else:
     s1 = int(sys.argv[1])
