@@ -35,18 +35,18 @@ one expects that resolutions carry over as well.
 
 * The non-anomalous networks will stay non-anomalous after wrapping another "trivial" loop. 
 Hence the following networks are expected to be non-anomalous:
- - (1,1,1,1,1,1,1)
- - (1,1,1,1,1,2)
- - (1,1,1,1,2,1)
- - (1,1,1,2,2)
- - (1,1,2,2,1)
- - (1,1,2,3)
+  - (1,1,1,1,1,1,1)
+  - (1,1,1,1,1,2)
+  - (1,1,1,1,2,1)
+  - (1,1,1,2,2)
+  - (1,1,2,2,1)
+  - (1,1,2,3)
 
 * The remaining, truely new networks are:
- - (1,2,1,1,2) -> anomalous.
- - (1,2,1,2,1) -> anomalous.
- - (1,2,2,1,1) -> marginal.
- - (1,2,2,2) -> nice.
+  - (1,2,1,1,2) -> anomalous.
+  - (1,2,1,2,1) -> anomalous.
+  - (1,2,2,1,1) -> marginal.
+  - (1,2,2,2) -> nice.
 
 
 
