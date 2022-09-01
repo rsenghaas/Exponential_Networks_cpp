@@ -29,8 +29,9 @@ n=7
 * The anomalous networks from n=6 just carry over by wrapping an extra (++/--). This gives us the anomalous networks
   - (1,1,1,2,1,1)
   - (1,1,2,1,1,1)
-  - (1,1,2,1,2) \\
-  one expects that resolutions carry over as well. 
+  - (1,1,2,1,2)
+  
+one expects that resolutions carry over as well. 
 
 * The non-anomalous networks will stay non-anomalous after wrapping another "trivial" loop. 
 Hence the following networks are expected to be non-anomalous:
