@@ -41,6 +41,7 @@ class Path {
   auto get_length() -> uint32_t {return v_.size();}
   auto print_data() -> void;
   auto save_data() -> void;
+  auto get_endmass() -> double {return masses_.back();}
   auto truncate(uint32_t t_start, uint32_t t_end) -> void;
 
   uint32_t path_id_;

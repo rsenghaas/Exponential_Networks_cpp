@@ -141,7 +141,7 @@ auto Path::compute_map_points(std::vector<path_point>& pp_vec,
       pp_vec.back().t.at(kIndexEndTime)++;
     }
   }
-  spdlog::debug("Path {} is represented by {} points on the map (before connecting)", path_id_, pp_vec.size());
+  spdlog::debug("Path {} is represented by {} points on the map." , path_id_, pp_vec.size());
 }
 
 auto Path::print_data() -> void {

@@ -37,3 +37,11 @@ auto complex_to_string(const std::complex<double> &z) -> std::string {
   sign = (z.imag() >= 0) ? "+" : "-";
   return fmt::format("{}{}{}j", z.real(), sign, std::abs(z.imag()));
 }
+
+auto get_log_sheet(state_type &v) -> int32_t {
+    cplx dv_y1 = v.at(kIndexY1) - std::log(std::exp(v.at(kIndexY1)));
+    cplx dv_y2 = v.at(kIndexY2) - std::log(std::exp(v.at(kIndexY2)));
+    int32_t k1 = static_cast<int32_t>(std::round((dv_y1 / (2 * pi * J)).real()));
+    int32_t k2 = static_cast<int32_t>(std::round((dv_y2 / (2 * pi * J)).real()));
+    return k1 - k2;
+}

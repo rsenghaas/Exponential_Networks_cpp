@@ -54,6 +54,8 @@ struct intersection {
 auto print_intersection(const intersection &intersect) -> void;
 auto print_path_point(const path_point &pp) -> void;
 auto print_state_type(const state_type &v) -> void;
+auto get_log_sheet(state_type &v) -> int32_t;
+
 
 inline auto operator+(const state_type &v1, const state_type &v2)
     -> state_type {

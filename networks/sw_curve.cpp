@@ -98,13 +98,12 @@ auto SW_curve::match_fiber(state_type &v) -> void {
   }
   cplx dv_y1 = v.at(kIndexY1) - nearest_fiber_y1;
   cplx dv_y2 = v.at(kIndexY2) - nearest_fiber_y2;
-  int32_t k1 =
-      static_cast<uint32_t>(std::round(((dv_y1) / (2 * pi * J)).real()));
-  int32_t k2 =
-      static_cast<uint32_t>(std::round(((dv_y2) / (2 * pi * J)).real()));
+  auto k1 =
+      static_cast<int32_t>(std::round(((dv_y1) / (2 * pi * J)).real()));
+  auto k2 =
+      static_cast<int32_t>(std::round(((dv_y2) / (2 * pi * J)).real()));
   v.at(kIndexY1) = nearest_fiber_y1 + 2 * pi * J * static_cast<double>(k1);
   v.at(kIndexY2) = nearest_fiber_y2 + 2 * pi * J * static_cast<double>(k2);
-  return;
 }
 
 auto SW_curve::get_branched_sheet(const cplx &x) -> cplx {

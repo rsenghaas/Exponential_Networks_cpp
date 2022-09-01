@@ -24,7 +24,10 @@ if sys.argv[1] == "all":
         x_data = data[:, 0]
         plt.plot(x_data.real, x_data.imag, linewidth=0.1)
     os.chdir(current_path)
-    plt.savefig('graphics/(1,2,1).png', dpi=fig.dpi)
+    # plt.axis([-3.0, 3.0, -3.0, 3.0])
+    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
+    plt.savefig('graphics/n=5/(1,2,2).png', dpi=fig.dpi)
 
 else:
     s1 = int(sys.argv[1])

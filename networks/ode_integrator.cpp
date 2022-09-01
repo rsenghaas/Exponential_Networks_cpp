@@ -51,10 +51,10 @@ auto ODE_integrator::integrate_ode(double cutoff) -> void {
                                  runge_kutta_cash_karp54<state_type>());
   uint32_t loop_counter = 0;
   while (obs_.masses.back() < cutoff && obs_.states.size() < kMaxSteps) {
-    if ((std::abs(v0_.at(kIndexX)) > kCutoffX ||
+    if ((std::abs(v0_.at(kIndexX)) > kHighCutoffX ||
          std::abs(v0_.at(kIndexY1)) > kCutoffY ||
          std::abs(v0_.at(kIndexY2)) > kCutoffY ||
-         std::abs(v0_.at(kIndexX)) < 1 / kCutoffX ||
+         std::abs(v0_.at(kIndexX)) < kLowCutoffX ||
          std::abs(v0_.at(kIndexY1) - v0_.at(kIndexY2)) < 1 / kCutoffY) &&
         loop_counter > 3) {
       break;
@@ -63,6 +63,7 @@ auto ODE_integrator::integrate_ode(double cutoff) -> void {
                        kInitialStepSize, observer(obs_));
     // integrate_const(runge_kutta4<state_type>(), diff_, v0_, t0_, t0_ +
     // kInitialStepSize, kInitialStepSize, observer(obs_));
+    diff_.curve_->match_fiber(v0_);
     loop_counter++;
   }
 }

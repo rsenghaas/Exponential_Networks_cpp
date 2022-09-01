@@ -32,20 +32,25 @@ const double kFiberCompTolerance = 1e-8;
 // Iteration constants.
 const uint32_t kInitialSteps = 500;
 const uint32_t kZerosMaxIterations = 200;
-const uint32_t kLineStepsPerUnit = 20;
+const uint32_t kLineStepsPerUnit = 30;
 
 // Map constants.
-const uint32_t kMapResolutionReal = 1000;
-const uint32_t kMapResolutionImag = 1000;
-const std::array<double, 2> kMapRangeReal = {-4.0, 4.0};
-const std::array<double, 2> kMapRangeImag = {-3.0, 3.0};
+const uint32_t kMapResolutionReal = 3000;
+const uint32_t kMapResolutionImag = 3000;
+const std::array<double, 2> kMapRangeReal = {-5.0, 5.0};
+const std::array<double, 2> kMapRangeImag = {-4.0, 4.0};
+
+//D0-D4 constants.
+const double kD0Mass = 4*pi*pi;
+const double kD4angle = -0.01;
+const double kD4Cutoff = 201.9;
 
 // ODE integration constants.
-const double kIntegratePeriod = 10.0;
+const double kIntegratePeriod = 5.0;
 const double kInitialStepSize = 1e-6;
-const double kD4Cutoff = 50.0;
-const double kCutoff = 50.0;
-const double kCutoffX = 3000;
+const double kCutoff = 200.0;
+const double kLowCutoffX = 1e-17;
+const double kHighCutoffX = 1000;
 const double kCutoffY = 10000;
 const uint32_t kMaxSteps = 100000;
 

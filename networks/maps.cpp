@@ -190,6 +190,7 @@ auto SinglePathMap::get_self_intersections() -> void {
     }
         map_pt->second.push_back(next_pp);
   }
+  spdlog::debug("Leaving intersection check.");
 }
 
 auto Map::add_path(std::vector<path_point> pp_vec) -> void {

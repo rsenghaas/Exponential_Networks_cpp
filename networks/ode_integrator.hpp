@@ -38,10 +38,10 @@ class ODE_differential {
       : theta_(theta), curve_(curve){};
 
   void operator()(const state_type &v, state_type &dv, const double time);
+  std::shared_ptr<SW_curve> curve_;
 
  private:
   double theta_;
-  std::shared_ptr<SW_curve> curve_;
 };
 
 class ODE_integrator {
