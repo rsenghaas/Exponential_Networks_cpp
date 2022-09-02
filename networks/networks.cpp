@@ -22,7 +22,7 @@ auto main(int argc, char *argv[]) -> int {
   spdlog::set_level(spdlog::level::debug);
   spdlog::info("Welcome to Networks!");
   // Network net(H_c3, theta);
-  std::vector<uint32_t> pattern_vec = {1,2,3,2,2,2};
+  std::vector<uint32_t> pattern_vec = {1,2,3,4,3,3,3};
   uint32_t k = 0;
   for(auto& i : pattern_vec) {
       k += i;
