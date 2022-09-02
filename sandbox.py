@@ -13,7 +13,7 @@ def transform(z):
     return z / ( 1/4 - z)
 
 if sys.argv[1] == "all":
-    fig = plt.figure(dpi=300)
+    fig = plt.figure(dpi=1000)
     intersection_data = transform(intersection_data);
     plt.plot(intersection_data.real, intersection_data.imag, "ro", markersize=1, markeredgewidth=0, markerfacecolor="red")
     current_path = pathlib.Path(__file__).parent.resolve()
