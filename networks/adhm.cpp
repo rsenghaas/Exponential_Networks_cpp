@@ -124,6 +124,66 @@ auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id) -> std::vector
 
 const state_type cutoffPoint = {-1.8897512312374315e-09-1.8882623082801205e-10 * J, -20.08185327082071+3.2411832963911094 * J, -1.8897512104510875e-09+3.1415926534009646 * J};
 
+auto ADHM::custom_BPS() -> void {
+    auto path_it = get_iterator_by_id(new_paths_, 0);
+    std::vector<state_type> v_cutoff = {cutoffPoint};
+    std::vector<double> masses_cutoff = {0};
+    Path cutoff_path(v_cutoff, masses_cutoff, 0);
+    *path_it = cutoff_path;
+    evolve_path(path_it, 4*kD4Cutoff);
+    path_it = get_iterator_by_id(new_paths_, 1);
+    evolve_path(path_it, kCutoff);
+    path_it = get_iterator_by_id(new_paths_, 2);
+    evolve_path(path_it, kCutoff);
+   
+    two_path_intersection_handler(0, 2, true, false, 3, 0, true, true);
+    next_id_--;
+    new_paths_.pop_back();
+    save_data(0);
+    
+    self_intersection_handler(1, false, -1, 0, true, true);
+    self_intersection_handler(1, true, -1, 0, false, false);
+    save_data(1);
+
+    path_it = get_iterator_by_id(new_paths_, 3);
+    evolve_path(path_it, kCutoff);
+    
+    path_it = get_iterator_by_id(new_paths_, 4);
+    evolve_path(path_it, kCutoff);
+
+    two_path_intersection_handler(2,3,false,true,0,0,true,false);
+    two_path_intersection_handler(2,4,true,true,0,0,true,false);
+
+    save_data(2);
+    save_data(3);
+    save_data(4);
+    
+    path_it = get_iterator_by_id(new_paths_, 6);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,6,false,true,-1,0,false,false);
+    save_data(6);
+
+    path_it = get_iterator_by_id(new_paths_, 7);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(2,7,false,true,0,0,true,false);
+    save_data(7);
+
+    path_it =get_iterator_by_id(new_paths_, 8);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,8,false,true,-1,0,true,true);
+    save_data(8);
+
+    path_it =get_iterator_by_id(new_paths_, 9);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(2,9,false,true,-1,0,true,false);
+    save_data(9);
+
+    /*path_it =get_iterator_by_id(new_paths_, 10);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,10,false,true,-1,0,true,false);
+    save_data(10);*/
+}
+
 auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   auto path_it = get_iterator_by_id(new_paths_, 0);
   std::vector<state_type> v_cutoff = {cutoffPoint};
@@ -134,9 +194,7 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
    state_type end_pt = path_it->get_endpoint();
   spdlog::debug("Cutoff point");
   // curve_->match_fiber(end_pt);
-  print_state_type(end_pt);
-  spdlog::debug("Mass: {}", path_it->get_endmass());
-  
+  print_state_type(end_pt);  
 
   //TODO: This should eventually be an input parameter.
   if(pattern_vec.front() != 1) {
@@ -654,7 +712,7 @@ auto intersect_states(state_type state_A, state_type state_B, state_type& new_st
                       std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
         new_state.at(kIndexX) = state_A.at(kIndexX);
         new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
-        new_state.at(kIndexY2) = std::log(std::exp(state_A.at(kIndexY2)));
+        new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
         return true;
     }
     print_state_type(state_A);

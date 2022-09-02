@@ -24,6 +24,7 @@ class ADHM {
   }
 
   auto BPS_state(std::vector<uint32_t> pattern_vec) -> void;
+  auto custom_BPS() -> void;
 
  private:
   double theta_;

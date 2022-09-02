@@ -58,6 +58,7 @@ some lower n resolution.
 * (1,2,1,2,1,1) &rarr; we have the marginal (...,2,1,1) anomaly and a new true anomaly further out.
 * (1,2,1,1,2,1) &rarr; anomalous. This would correspond to a durfy square decomposition.
 * (1,2,1,1,1,2) &rarr; anomalous.
+
 Very long sequences tend to become anomalous.
 
 * (1,2,3,2) &rarr; nice.
