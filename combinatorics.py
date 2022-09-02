@@ -15,7 +15,7 @@ for i in range(2**len(numbers)):
     for k in range(len(numbers)):
         total += signs[k] * numbers[k]
 
-    if abs(total - 22) <= 0:
+    if (total == 22):
         sret = ""
         for k in range(len(numbers)):
             if signs[k] < 0:
