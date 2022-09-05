@@ -141,8 +141,60 @@ auto ADHM::custom_BPS() -> void {
     new_paths_.pop_back();
     save_data(0);
     
-    self_intersection_handler(1, false, -1, 0, true, true);
-    self_intersection_handler(1, true, -1, 0, false, false);
+
+    self_intersection_handler(1, false, -1, 0, false, false);
+    self_intersection_handler(1, true, -1, 0, true, true);
+    save_data(1);
+
+    path_it = get_iterator_by_id(new_paths_, 3);
+    evolve_path(path_it, kCutoff);
+    
+    path_it = get_iterator_by_id(new_paths_, 4);
+    evolve_path(path_it, kCutoff);
+
+    two_path_intersection_handler(2,3,true,true,0,0,true,false);
+    two_path_intersection_handler(2,4,false,true,0,0,true,false);
+
+    save_data(2);
+    save_data(3);
+       
+    path_it = get_iterator_by_id(new_paths_, 5);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,5,false,true,-1,0,true,false);
+    save_data(5);
+
+    path_it = get_iterator_by_id(new_paths_, 7);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(4,7,true,true,-1,0,false, false);
+    save_data(4);
+    save_data(7);
+
+    path_it =get_iterator_by_id(new_paths_, 8);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(2,8,false,true,0,0,true,false);
+    save_data(8);
+
+    path_it = get_iterator_by_id(new_paths_, 9);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,9,false,true,-2,0,true,true);
+    save_data(9);
+
+    path_it =get_iterator_by_id(new_paths_, 10);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(2,10,false,true,0,0,true,false);
+    save_data(10);
+    
+    path_it = get_iterator_by_id(new_paths_, 11);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(1,11,false,true,-1,0,true,true);
+    save_data(11);
+    
+    path_it =get_iterator_by_id(new_paths_, 12);
+    evolve_path(path_it, kCutoff);
+    two_path_intersection_handler(2,12,false,true,0,0,true,false);
+    save_data(12);
+
+    /* self_intersection_handler(1, true, -1, 0, false, false);
     save_data(1);
 
     path_it = get_iterator_by_id(new_paths_, 3);
@@ -176,7 +228,7 @@ auto ADHM::custom_BPS() -> void {
     path_it =get_iterator_by_id(new_paths_, 9);
     evolve_path(path_it, kCutoff);
     two_path_intersection_handler(2,9,false,true,-1,0,true,false);
-    save_data(9);
+    save_data(9); */
 
     /*path_it =get_iterator_by_id(new_paths_, 10);
     evolve_path(path_it, kCutoff);
