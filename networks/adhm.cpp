@@ -1,19 +1,19 @@
 #include "adhm.hpp"
-#include "maps.hpp"
-#include "Eigen/Dense"
 
 #include <fmt/core.h>
 #include <ginac/ginac.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 #include <thread>
 #include <vector>
-#include <algorithm>
 
+#include "Eigen/Dense"
+#include "maps.hpp"
 
 auto determine_sign(SW_curve& curve, const state_type& r, state_type& v)
     -> void {
@@ -110,130 +110,279 @@ auto ADHM::start_paths() -> void {
   }
 }
 
-auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id) -> std::vector<Path>::iterator {
-    auto ret_it = path_vec.begin();
-    while(ret_it != path_vec.end()) {
-        if(ret_it->path_id_ == id)
-        {
-          break;
-        }
-        ret_it++;
+auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
+    -> std::vector<Path>::iterator {
+  auto ret_it = path_vec.begin();
+  while (ret_it != path_vec.end()) {
+    if (ret_it->path_id_ == id) {
+      break;
     }
-    return ret_it;
+    ret_it++;
+  }
+  return ret_it;
 }
 
-const state_type cutoffPoint = {-1.8897512312374315e-09-1.8882623082801205e-10 * J, -20.08185327082071+3.2411832963911094 * J, -1.8897512104510875e-09+3.1415926534009646 * J};
+const state_type cutoffPoint = {
+    -1.8897512312374315e-09 - 1.8882623082801205e-10 * J,
+    -20.08185327082071 + 3.2411832963911094 * J,
+    -1.8897512104510875e-09 + 3.1415926534009646 * J};
 
-auto ADHM::custom_BPS() -> void {
-    auto path_it = get_iterator_by_id(new_paths_, 0);
-    std::vector<state_type> v_cutoff = {cutoffPoint};
-    std::vector<double> masses_cutoff = {0};
-    Path cutoff_path(v_cutoff, masses_cutoff, 0);
-    *path_it = cutoff_path;
-    evolve_path(path_it, 4*kD4Cutoff);
+auto ADHM::backwards(std::vector<uint32_t> pattern_vec) -> void {
+  auto path_it = get_iterator_by_id(new_paths_, 0);
+  std::vector<state_type> v_cutoff = {cutoffPoint};
+  std::vector<double> masses_cutoff = {0};
+  Path cutoff_path(v_cutoff, masses_cutoff, 0);
+  *path_it = cutoff_path;
+  evolve_path(path_it, 4 * kD4Cutoff);
+  state_type end_pt = path_it->get_endpoint();
+  spdlog::debug("Cutoff point");
+  // curve_->match_fiber(end_pt);
+  print_state_type(end_pt);
+
+  // TODO: This should eventually be an input parameter.
+  if (pattern_vec.front() != 1) {
+    spdlog::error("Illegal pattern");
+    return;
+  }
+
+  for (auto vec_it = pattern_vec.begin(); vec_it + 1 != pattern_vec.end();
+       vec_it++) {
+    spdlog::debug("{}", *vec_it);
+    if (*vec_it != *(vec_it + 1) && *vec_it + 1 != *(vec_it + 1) &&
+        *vec_it - 1 != *(vec_it + 1)) {
+      spdlog::error("Illegal pattern");
+      return;
+    }
+  }
+
+  // std::reverse(pattern_vec.begin(), pattern_vec.end());
+
+  spdlog::debug("{}", pattern_vec.front());
+
+  path_it = get_iterator_by_id(new_paths_, 1);
+  evolve_path(path_it, kD4Cutoff);
+
+  if (pattern_vec.size() == 1) {
+    save_data(0);
+    save_data(1);
+    return;
+  }
+  std::reverse(pattern_vec.begin(), pattern_vec.end());
+
+  path_it = get_iterator_by_id(new_paths_, 2);
+  evolve_path(path_it, kCutoff);
+
+  spdlog::debug("New paths size {}", new_paths_.size());
+
+  if (pattern_vec.at(0) == pattern_vec.at(1)) {
+    self_intersection_handler(1, true, -1, 0, false, false);
+
     path_it = get_iterator_by_id(new_paths_, 1);
+    save_data(1);
+
+    path_it = get_iterator_by_id(new_paths_, 3);
     evolve_path(path_it, kCutoff);
+
+    two_path_intersection_handler(2, 3, false, true, 0, 0, false, false);
+  } else {
+    spdlog::debug("Shift loop");
+    int32_t n = pattern_vec.at(1);
+    bool swap = true;
+    if (pattern_vec.at(0) < pattern_vec.at(1)) {
+      n = pattern_vec.at(0);
+      swap = false;
+    }
+
+    self_intersection_handler(1, true, -n, 0, true, swap);
+
+    path_it = get_iterator_by_id(new_paths_, 1);
+    save_data(1);
+
     path_it = get_iterator_by_id(new_paths_, 2);
     evolve_path(path_it, kCutoff);
-   
-    two_path_intersection_handler(0, 2, true, false, 3, 0, true, true);
-    next_id_--;
-    new_paths_.pop_back();
-    save_data(0);
-    
-
-    self_intersection_handler(1, false, -1, 0, false, false);
-    self_intersection_handler(1, true, -1, 0, true, true);
-    save_data(1);
 
     path_it = get_iterator_by_id(new_paths_, 3);
     evolve_path(path_it, kCutoff);
-    
-    path_it = get_iterator_by_id(new_paths_, 4);
-    evolve_path(path_it, kCutoff);
 
-    two_path_intersection_handler(2,3,true,true,0,0,true,false);
-    two_path_intersection_handler(2,4,false,true,0,0,true,false);
+    two_path_intersection_handler(2, 3, false, true, 0, 0, true, false);
+  }
+  save_data(2);
+  save_data(3);
 
-    save_data(2);
-    save_data(3);
-       
-    path_it = get_iterator_by_id(new_paths_, 5);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,5,false,true,-1,0,true,false);
-    save_data(5);
+  uint32_t current_index = 4;
+  for (auto it = pattern_vec.begin() + 1; it != pattern_vec.end() - 1; it++) {
+    spdlog::debug("Drawing loops.");
+    if (*it == *(it + 1)) {
+      trivial_loop(current_index);
 
-    path_it = get_iterator_by_id(new_paths_, 7);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(4,7,true,true,-1,0,false, false);
-    save_data(4);
-    save_data(7);
+    } else if (*it > *(it + 1)) {
+      shift_loop(current_index, -*(it + 1), true);
+    } else {
+      shift_loop(current_index, -*(it), false);
+    }
+    current_index += 2;
+    spdlog::debug("Finished loop.");
+  }
 
-    path_it =get_iterator_by_id(new_paths_, 8);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(2,8,false,true,0,0,true,false);
-    save_data(8);
+  double M_total;
+  for (auto& pth : new_paths_) {
+    M_total += pth.get_endmass();
+  }
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  save_data(current_index);
 
-    path_it = get_iterator_by_id(new_paths_, 9);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,9,false,true,-2,0,true,true);
-    save_data(9);
+  two_path_intersection_handler(0, 2, true, false, 1, 0, false, false);
+  save_data(0);
+  current_index = new_paths_.size() - 1;
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1, current_index, false, true, 0, 0, false,
+                                false);
+  save_data(current_index);
+  current_index++;
 
-    path_it =get_iterator_by_id(new_paths_, 10);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(2,10,false,true,0,0,true,false);
-    save_data(10);
-    
-    path_it = get_iterator_by_id(new_paths_, 11);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,11,false,true,-1,0,true,true);
-    save_data(11);
-    
-    path_it =get_iterator_by_id(new_paths_, 12);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(2,12,false,true,0,0,true,false);
-    save_data(12);
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  save_data(current_index);
+  current_index++;
 
-    /* self_intersection_handler(1, true, -1, 0, false, false);
-    save_data(1);
+  for (auto it = pattern_vec.begin() + 1; it != pattern_vec.end() - 1; it++) {
+    if (*it == *(it + 1)) {
+      auto path_it = get_iterator_by_id(new_paths_, current_index);
+      evolve_path(path_it, kCutoff);
 
-    path_it = get_iterator_by_id(new_paths_, 3);
-    evolve_path(path_it, kCutoff);
-    
-    path_it = get_iterator_by_id(new_paths_, 4);
-    evolve_path(path_it, kCutoff);
+      two_path_intersection_handler(1, current_index, false, true, 1, 0, false,
+                                    false);
+      save_data(current_index);
 
-    two_path_intersection_handler(2,3,false,true,0,0,true,false);
-    two_path_intersection_handler(2,4,true,true,0,0,true,false);
+      path_it = get_iterator_by_id(new_paths_, current_index);
+      evolve_path(path_it, kCutoff);
 
-    save_data(2);
-    save_data(3);
-    save_data(4);
-    
-    path_it = get_iterator_by_id(new_paths_, 6);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,6,false,true,-1,0,false,false);
-    save_data(6);
+      two_path_intersection_handler(2, current_index, false, true, 0, 0, false,
+                                    false);
+      save_data(current_index);
+    } else if (*it > *(it + 1)) {
+      shift_loop(current_index, -*(it + 1), true);
+    } else {
+      shift_loop(current_index, -*(it), false);
+    }
+    current_index += 2;
+  }
+  path_it = get_iterator_by_id(new_paths_, 2);
+  path_it->truncate(0, path_2_endtime_ + 1);
+  save_data(2);
+}
 
-    path_it = get_iterator_by_id(new_paths_, 7);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(2,7,false,true,0,0,true,false);
-    save_data(7);
+auto ADHM::custom_BPS() -> void {
+  auto path_it = get_iterator_by_id(new_paths_, 0);
+  std::vector<state_type> v_cutoff = {cutoffPoint};
+  std::vector<double> masses_cutoff = {0};
+  Path cutoff_path(v_cutoff, masses_cutoff, 0);
+  *path_it = cutoff_path;
+  evolve_path(path_it, 4 * kD4Cutoff);
+  path_it = get_iterator_by_id(new_paths_, 1);
+  evolve_path(path_it, kCutoff);
+  path_it = get_iterator_by_id(new_paths_, 2);
+  evolve_path(path_it, kCutoff);
 
-    path_it =get_iterator_by_id(new_paths_, 8);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,8,false,true,-1,0,true,true);
-    save_data(8);
+  two_path_intersection_handler(0, 2, true, false, 3, 0, true, true);
+  next_id_--;
+  new_paths_.pop_back();
+  save_data(0);
 
-    path_it =get_iterator_by_id(new_paths_, 9);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(2,9,false,true,-1,0,true,false);
-    save_data(9); */
+  self_intersection_handler(1, false, -1, 0, false, false);
+  self_intersection_handler(1, true, -1, 0, true, true);
+  save_data(1);
 
-    /*path_it =get_iterator_by_id(new_paths_, 10);
-    evolve_path(path_it, kCutoff);
-    two_path_intersection_handler(1,10,false,true,-1,0,true,false);
-    save_data(10);*/
+  path_it = get_iterator_by_id(new_paths_, 3);
+  evolve_path(path_it, kCutoff);
+
+  path_it = get_iterator_by_id(new_paths_, 4);
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(2, 3, true, true, 0, 0, true, false);
+  two_path_intersection_handler(2, 4, false, true, 0, 0, true, false);
+
+  save_data(2);
+  save_data(3);
+
+  path_it = get_iterator_by_id(new_paths_, 5);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1, 5, false, true, -1, 0, true, false);
+  save_data(5);
+
+  path_it = get_iterator_by_id(new_paths_, 7);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(4, 7, true, true, -1, 0, false, false);
+  save_data(4);
+  save_data(7);
+
+  path_it = get_iterator_by_id(new_paths_, 8);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2, 8, false, true, 0, 0, true, false);
+  save_data(8);
+
+  path_it = get_iterator_by_id(new_paths_, 9);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1, 9, false, true, -2, 0, true, true);
+  save_data(9);
+
+  path_it = get_iterator_by_id(new_paths_, 10);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2, 10, false, true, 0, 0, true, false);
+  save_data(10);
+
+  path_it = get_iterator_by_id(new_paths_, 11);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1, 11, false, true, -1, 0, true, true);
+  save_data(11);
+
+  path_it = get_iterator_by_id(new_paths_, 12);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2, 12, false, true, 0, 0, true, false);
+  save_data(12);
+
+  /* self_intersection_handler(1, true, -1, 0, false, false);
+  save_data(1);
+
+  path_it = get_iterator_by_id(new_paths_, 3);
+  evolve_path(path_it, kCutoff);
+
+  path_it = get_iterator_by_id(new_paths_, 4);
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(2,3,false,true,0,0,true,false);
+  two_path_intersection_handler(2,4,true,true,0,0,true,false);
+
+  save_data(2);
+  save_data(3);
+  save_data(4);
+
+  path_it = get_iterator_by_id(new_paths_, 6);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,6,false,true,-1,0,false,false);
+  save_data(6);
+
+  path_it = get_iterator_by_id(new_paths_, 7);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2,7,false,true,0,0,true,false);
+  save_data(7);
+
+  path_it =get_iterator_by_id(new_paths_, 8);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,8,false,true,-1,0,true,true);
+  save_data(8);
+
+  path_it =get_iterator_by_id(new_paths_, 9);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2,9,false,true,-1,0,true,false);
+  save_data(9); */
+
+  /*path_it =get_iterator_by_id(new_paths_, 10);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,10,false,true,-1,0,true,false);
+  save_data(10);*/
 }
 
 auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
@@ -242,42 +391,44 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   std::vector<double> masses_cutoff = {0};
   Path cutoff_path(v_cutoff, masses_cutoff, 0);
   *path_it = cutoff_path;
-  evolve_path(path_it, 4*kD4Cutoff);
-   state_type end_pt = path_it->get_endpoint();
+  evolve_path(path_it, 4 * kD4Cutoff);
+  state_type end_pt = path_it->get_endpoint();
   spdlog::debug("Cutoff point");
   // curve_->match_fiber(end_pt);
-  print_state_type(end_pt);  
+  print_state_type(end_pt);
 
-  //TODO: This should eventually be an input parameter.
-  if(pattern_vec.front() != 1) {
-      spdlog::error("Illegal pattern");
-      return;
+  // TODO: This should eventually be an input parameter.
+  if (pattern_vec.front() != 1) {
+    spdlog::error("Illegal pattern");
+    return;
   }
 
-  for (auto vec_it = pattern_vec.begin(); vec_it + 1 != pattern_vec.end(); vec_it++) {
-      spdlog::debug("{}", *vec_it);
-      if(*vec_it != *(vec_it + 1) && *vec_it + 1 != *(vec_it + 1) && *vec_it - 1 != *(vec_it + 1)) {
-        spdlog::error("Illegal pattern");
-        return;
-      }
+  for (auto vec_it = pattern_vec.begin(); vec_it + 1 != pattern_vec.end();
+       vec_it++) {
+    spdlog::debug("{}", *vec_it);
+    if (*vec_it != *(vec_it + 1) && *vec_it + 1 != *(vec_it + 1) &&
+        *vec_it - 1 != *(vec_it + 1)) {
+      spdlog::error("Illegal pattern");
+      return;
+    }
   }
 
   std::reverse(pattern_vec.begin(), pattern_vec.end());
 
   spdlog::debug("{}", pattern_vec.front());
-  
+
   path_it = get_iterator_by_id(new_paths_, 1);
   evolve_path(path_it, kD4Cutoff);
 
   save_data(1);
-    if(pattern_vec.size() == 1) {
-      save_data(1);
-      return;
-    }
+  if (pattern_vec.size() == 1) {
+    save_data(1);
+    return;
+  }
 
   path_it = get_iterator_by_id(new_paths_, 2);
   evolve_path(path_it, kCutoff);
-  
+
   two_path_intersection_handler(0, 2, true, false, 0, 0, false, false);
   next_id_--;
   save_data(0);
@@ -298,81 +449,76 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   save_data(2);
   save_data(3); */
 
-
-  if(pattern_vec.at(0) == pattern_vec.at(1)) {
+  if (pattern_vec.at(0) == pattern_vec.at(1)) {
     self_intersection_handler(1, true, -1, 0, false, false);
-  
+
     path_it = get_iterator_by_id(new_paths_, 1);
     save_data(1);
 
     path_it = get_iterator_by_id(new_paths_, 3);
     evolve_path(path_it, kCutoff);
-    
+
     two_path_intersection_handler(2, 3, false, true, 0, 0, false, false);
-  }
-  else {
+  } else {
     spdlog::debug("Shift loop");
-      int32_t n = pattern_vec.at(1);
-      bool swap = true;
-      if (pattern_vec.at(0) < pattern_vec.at(1)) {
-        n = pattern_vec.at(0);
-        swap = false;
-      }
+    int32_t n = pattern_vec.at(1);
+    bool swap = true;
+    if (pattern_vec.at(0) < pattern_vec.at(1)) {
+      n = pattern_vec.at(0);
+      swap = false;
+    }
 
-      self_intersection_handler(1, true, -n, 0, true, swap);
-      
+    self_intersection_handler(1, true, -n, 0, true, swap);
 
-      path_it = get_iterator_by_id(new_paths_, 1);
-      save_data(1);
+    path_it = get_iterator_by_id(new_paths_, 1);
+    save_data(1);
 
-      path_it = get_iterator_by_id(new_paths_, 2);
-      evolve_path(path_it, kCutoff);
+    path_it = get_iterator_by_id(new_paths_, 2);
+    evolve_path(path_it, kCutoff);
 
-      path_it = get_iterator_by_id(new_paths_, 3);
-      evolve_path(path_it, kCutoff);
-  
-      two_path_intersection_handler(2, 3, false, true, 0, 0, true, false);
+    path_it = get_iterator_by_id(new_paths_, 3);
+    evolve_path(path_it, kCutoff);
+
+    two_path_intersection_handler(2, 3, false, true, 0, 0, true, false);
   }
   save_data(2);
   save_data(3);
-  
+
   uint32_t current_index = 4;
-  for(auto it = pattern_vec.begin() + 1; it != pattern_vec.end() - 1; it++) {
+  for (auto it = pattern_vec.begin() + 1; it != pattern_vec.end() - 1; it++) {
     spdlog::debug("Drawing loops.");
-      if(*it == *(it + 1)) {
-        trivial_loop(current_index);
-      }
-      else if (*it > *(it + 1)) {
-          shift_loop(current_index, -*(it + 1), true);
-      }
-      else {
-          shift_loop(current_index, -*(it), false);
-      }
-      current_index += 2;
-      spdlog::debug("Finished loop.");
+    if (*it == *(it + 1)) {
+      trivial_loop(current_index);
+    } else if (*it > *(it + 1)) {
+      shift_loop(current_index, -*(it + 1), true);
+    } else {
+      shift_loop(current_index, -*(it), false);
+    }
+    current_index += 2;
+    spdlog::debug("Finished loop.");
   }
-  
+
   path_it = get_iterator_by_id(new_paths_, 2);
   path_it->truncate(0, path_2_endtime_ + 1);
   save_data(2);
   double M_total;
-  for(auto& pth : new_paths_) {
+  for (auto& pth : new_paths_) {
     M_total += pth.get_endmass();
   }
   spdlog::debug("Mass: {}", M_total);
 
-    // evolve_path(path_it, 4*kD4Cutoff);
-    // save_data(current_index); 
+  // evolve_path(path_it, 4*kD4Cutoff);
+  // save_data(current_index);
 
   /* path_it = get_iterator_by_id(new_paths_, 5);
   evolve_path(path_it, 4*kD4Cutoff);
-  // save_data(5); 
-  
+  // save_data(5);
+
   // two_path_intersection_handler(2, 5, false, true, 1, 0, true);
   two_path_intersection_handler(2, 5, false, true, 0, 0, false);
   // two_path_intersection_handler(2, 3, false, false, 1);
   // two_path_intersection_handler(2, 3, true, true, 2);
-  save_data(5); 
+  save_data(5);
   path_it = get_iterator_by_id(new_paths_, 6);
   evolve_path(path_it, 4*kD4Cutoff);
 
@@ -382,21 +528,17 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   evolve_path(path_it, 4*kD4Cutoff);
   two_path_intersection_handler(2, 7, false, true, 0, 0, false);
   save_data(7);
-  
+
   path_it = get_iterator_by_id(new_paths_, 8);
   evolve_path(path_it, 4*kD4Cutoff);
   save_data(8); */
 
-  
-
-
   // two_path_intersection_handler(2, 4, true, true, 0);
   // save_data(4);
-  
+
   // path_it = get_iterator_by_id(new_paths_, 5);
   // evolve_path(path_it, kD4Cutoff);
   // save_data(5);
-  
 
   /* path_it = get_iterator_by_id(new_paths_, 5);
   evolve_path(path_it, 2* kD4Cutoff);
@@ -409,12 +551,12 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   // two_path_intersection_handler(1, 4, false, true, 0);
   // two_path_intersection_handler(1, 5, false, true, 0);
   // two_path_intersection_handler(1, 6, false, true, 0);
- 
+
   // two_path_intersection_handler(2, 3, true, true, 0);
   // two_path_intersection_handler(2, 3, true, true, -1);
-  
-  //path_it = get_iterator_by_id(new_paths_, 2);
-  //path_it-> save_data();
+
+  // path_it = get_iterator_by_id(new_paths_, 2);
+  // path_it-> save_data();
 
   // path_it = get_iterator_by_id(new_paths_, 3);
   // path_it-> save_data();
@@ -422,10 +564,10 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
   // path_it = get_iterator_by_id(new_paths_, 4);
   // evolve_path(path_it, 3*kD4Cutoff);
   // two_path_intersection_handler(1, 4, false, true, -1);
-  
+
   // path_it = get_iterator_by_id(new_paths_, 4);
   // path_it->save_data();
-  
+
   // path_it = get_iterator_by_id(new_paths_, 5);
   // evolve_path(path_it, kD4Cutoff);
   // two_path_intersection_handler(2, 5, false, true, 0);
@@ -435,7 +577,7 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
 
   /* path_it = get_iterator_by_id(new_paths_, 6);
   evolve_path(path_it, kD4Cutoff);
-  
+
   path_it = get_iterator_by_id(new_paths_, 6);
   path_it->save_data(); */
 
@@ -443,19 +585,19 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
 }
 
 auto ADHM::shift_loop(uint32_t path_index, int32_t n, bool swap) -> void {
-    spdlog::debug("Shift loop {}.", n);
-    auto path_it = get_iterator_by_id(new_paths_, path_index);
-    evolve_path(path_it, 4*kCutoff);
+  spdlog::debug("Shift loop {}.", n);
+  auto path_it = get_iterator_by_id(new_paths_, path_index);
+  evolve_path(path_it, 4 * kCutoff);
 
-    two_path_intersection_handler(1, path_index, false, true, n, 0, true, swap);
-    save_data(path_index);
+  two_path_intersection_handler(1, path_index, false, true, n, 0, true, swap);
+  save_data(path_index);
 
-    path_index = new_paths_.size() - 1;
-    path_it = get_iterator_by_id(new_paths_, path_index);
-    evolve_path(path_it, kCutoff);
+  path_index = new_paths_.size() - 1;
+  path_it = get_iterator_by_id(new_paths_, path_index);
+  evolve_path(path_it, kCutoff);
 
-    two_path_intersection_handler(2, path_index, false, true, 0, 0, true, false);
-    save_data(path_index);
+  two_path_intersection_handler(2, path_index, false, true, 0, 0, true, false);
+  save_data(path_index);
 }
 
 auto ADHM::trivial_loop(uint32_t path_index) -> void {
@@ -463,7 +605,8 @@ auto ADHM::trivial_loop(uint32_t path_index) -> void {
   auto path_it = get_iterator_by_id(new_paths_, path_index);
   evolve_path(path_it, kCutoff);
 
-  two_path_intersection_handler(1, path_index, false, true, -1, 0, false, false);
+  two_path_intersection_handler(1, path_index, false, true, -1, 0, false,
+                                false);
   save_data(path_index);
 
   path_index = new_paths_.size() - 1;
@@ -474,106 +617,128 @@ auto ADHM::trivial_loop(uint32_t path_index) -> void {
   save_data(path_index);
 }
 
-auto ADHM::save_data(uint32_t id) -> void { 
-    auto path_it = get_iterator_by_id(new_paths_, id);
-    path_it-> save_data();
+auto ADHM::save_data(uint32_t id) -> void {
+  auto path_it = get_iterator_by_id(new_paths_, id);
+  path_it->save_data();
 }
 
-auto ADHM::self_intersection_handler(uint32_t id, bool truncate, int32_t n, uint32_t intersection_number, bool shift, bool swap) -> void {
+auto ADHM::self_intersection_handler(uint32_t id, bool truncate, int32_t n,
+                                     uint32_t intersection_number, bool shift,
+                                     bool swap) -> void {
   auto path_it = get_iterator_by_id(new_paths_, id);
   std::vector<intersection> intersections = self_intersections(path_it);
   spdlog::debug("{} self intersections", intersections.size());
   auto inter_it = intersections.begin();
   inter_it += intersection_number;
-  state_type next_state;  
-  state_type pt_A = path_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
+  state_type next_state;
+  state_type pt_A =
+      path_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
   print_state_type(pt_A);
   int32_t state_A_k = get_log_sheet(pt_A);
   spdlog::debug("Path_A has k {}", state_A_k);
-  state_type pt_B = path_it->get_point(inter_it->times.at(1).at(kIndexStartTime));
+  state_type pt_B =
+      path_it->get_point(inter_it->times.at(1).at(kIndexStartTime));
   print_state_type(pt_B);
   int32_t state_B_k = get_log_sheet(pt_B);
   spdlog::debug("Path_B has k {}", state_B_k);
-  if(compute_intersection_points(*inter_it, path_it, path_it, n, next_state)) {
+  if (compute_intersection_points(*inter_it, path_it, path_it, n, next_state)) {
     print_state_type(next_state);
-      if(truncate) {
-        path_it->truncate(0, inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
-        //BUG: This doesn't take care of the y's, one should probably make this better via match_fiber!
-        path_it->add_single_point(next_state);
+    if (truncate) {
+      path_it->truncate(0,
+                        inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
+      // BUG: This doesn't take care of the y's, one should probably make this
+      // better via match_fiber!
+      path_it->add_single_point(next_state);
+    }
+    if (shift) {
+      state_type shift_state = path_it->get_point(
+          inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
+      if (swap) {
+        cplx temp = shift_state.at(kIndexY1);
+        shift_state.at(kIndexY1) = shift_state.at(kIndexY2);
+        shift_state.at(kIndexY2) = temp;
       }
-      if (shift) {
-          state_type shift_state = path_it->get_point(inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
-          if (swap) {
-              cplx temp = shift_state.at(kIndexY1);
-              shift_state.at(kIndexY1) = shift_state.at(kIndexY2);   
-              shift_state.at(kIndexY2) = temp;
-          }
-          shift_state.at(kIndexX) = next_state.at(kIndexX);
-          curve_->match_fiber(shift_state);
-          shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) + 2 * pi * J * static_cast<double>(n);
-          add_new_path(shift_state);
-      } else {
-        add_new_path(next_state);
-      }
+      shift_state.at(kIndexX) = next_state.at(kIndexX);
+      curve_->match_fiber(shift_state);
+      shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) +
+                                 2 * pi * J * static_cast<double>(n);
+      add_new_path(shift_state);
+    } else {
+      add_new_path(next_state);
+    }
   }
 }
 
-auto ADHM::two_path_intersection_handler(uint32_t id_A, uint32_t id_B, bool truncate_A, bool truncate_B, int32_t n, uint32_t intersection_number, bool shift, bool swap) -> void {
-    auto path_A_it = get_iterator_by_id(new_paths_, id_A);
-    auto path_B_it = get_iterator_by_id(new_paths_, id_B);
-    if(id_A > id_B) {
-      path_A_it = get_iterator_by_id(new_paths_, id_B);
-      path_B_it = get_iterator_by_id(new_paths_, id_A);
-    } 
-    std::vector<intersection> intersections = two_path_intersections(path_A_it, path_B_it);
-    auto inter_it = intersections.begin();
-    if(inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
-      inter_it++;
-    }
-    inter_it += intersection_number;
-    print_intersection(*inter_it);
-    state_type pt_A = path_A_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
-    int32_t state_A_k = get_log_sheet(pt_A);
-    spdlog::debug("Path_A has k {}", state_A_k);
-    state_type pt_B = path_B_it->get_point(inter_it->times.at(1).at(kIndexStartTime));
-    int32_t state_B_k = get_log_sheet(pt_B);
-    spdlog::debug("Path_B has k {}", state_B_k);
+auto ADHM::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
+                                         bool truncate_A, bool truncate_B,
+                                         int32_t n,
+                                         uint32_t intersection_number,
+                                         bool shift, bool swap) -> void {
+  auto path_A_it = get_iterator_by_id(new_paths_, id_A);
+  auto path_B_it = get_iterator_by_id(new_paths_, id_B);
+  if (id_A > id_B) {
+    path_A_it = get_iterator_by_id(new_paths_, id_B);
+    path_B_it = get_iterator_by_id(new_paths_, id_A);
+  }
+  std::vector<intersection> intersections =
+      two_path_intersections(path_A_it, path_B_it);
+  auto inter_it = intersections.begin();
+  if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
+    inter_it++;
+  }
+  inter_it += intersection_number;
+  print_intersection(*inter_it);
+  state_type pt_A =
+      path_A_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
+  int32_t state_A_k = get_log_sheet(pt_A);
+  spdlog::debug("Path_A has k {}", state_A_k);
+  state_type pt_B =
+      path_B_it->get_point(inter_it->times.at(1).at(kIndexStartTime));
+  int32_t state_B_k = get_log_sheet(pt_B);
+  spdlog::debug("Path_B has k {}", state_B_k);
 
-    state_type next_state;
-    if(compute_intersection_points(*inter_it, path_A_it, path_B_it, n, next_state)) {
-        spdlog::debug("Two path intersection.");
-        if(id_A == 2 && inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) > path_2_endtime_) {
-            path_2_endtime_ = inter_it->times.at(kIndexFirstPath).at(kIndexEndTime);
-        }
-        if(id_B == 2 && inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) > path_2_endtime_) {
-            path_2_endtime_ = inter_it->times.at(kIndexSecondPath).at(kIndexEndTime);
-        }
-
-        if(truncate_A) {
-          path_A_it->truncate(0, inter_it->times.at(kIndexFirstPath).at(kIndexEndTime));
-          path_A_it->add_single_point(next_state);
-        }
-        if (truncate_B) {
-          path_B_it->truncate(0, inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
-          path_B_it->add_single_point(next_state);
-        }
-        if (shift) {
-          auto shift_path_it = get_iterator_by_id(new_paths_, id_A);
-          state_type shift_state = shift_path_it->get_point(inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
-          if (swap) {
-              cplx temp = shift_state.at(kIndexY1);
-              shift_state.at(kIndexY1) = shift_state.at(kIndexY2);   
-              shift_state.at(kIndexY2) = temp;
-          }
-          shift_state.at(kIndexX) = next_state.at(kIndexX);
-          curve_->match_fiber(shift_state);
-          shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) + 2 * pi * J * static_cast<double>(n);
-          print_state_type(shift_state);
-          add_new_path(shift_state);
-        } else {
-          add_new_path(next_state);
-        }
+  state_type next_state;
+  if (compute_intersection_points(*inter_it, path_A_it, path_B_it, n,
+                                  next_state)) {
+    spdlog::debug("Two path intersection.");
+    if (id_A == 2 && inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) >
+                         path_2_endtime_) {
+      path_2_endtime_ = inter_it->times.at(kIndexFirstPath).at(kIndexEndTime);
     }
+    if (id_B == 2 && inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) >
+                         path_2_endtime_) {
+      path_2_endtime_ = inter_it->times.at(kIndexSecondPath).at(kIndexEndTime);
+    }
+
+    if (truncate_A) {
+      path_A_it->truncate(
+          0, inter_it->times.at(kIndexFirstPath).at(kIndexEndTime));
+      path_A_it->add_single_point(next_state);
+    }
+    if (truncate_B) {
+      path_B_it->truncate(
+          0, inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
+      path_B_it->add_single_point(next_state);
+    }
+    if (shift) {
+      auto shift_path_it = get_iterator_by_id(new_paths_, id_A);
+      state_type shift_state = shift_path_it->get_point(
+          inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
+      if (swap) {
+        cplx temp = shift_state.at(kIndexY1);
+        shift_state.at(kIndexY1) = shift_state.at(kIndexY2);
+        shift_state.at(kIndexY2) = temp;
+      }
+      shift_state.at(kIndexX) = next_state.at(kIndexX);
+      curve_->match_fiber(shift_state);
+      shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) +
+                                 2 * pi * J * static_cast<double>(n);
+      print_state_type(shift_state);
+      add_new_path(shift_state);
+    } else {
+      add_new_path(next_state);
+    }
+  }
 }
 
 auto ADHM::add_new_path(state_type start_point) -> void {
@@ -634,7 +799,6 @@ auto compare_states(state_type v1, state_type v2) -> bool {
                              coord_arr2.at(kIndexCoordImag))) > 1);
 } */
 
-
 /* auto ADHM::handle_self_intersections(
     std::vector<std::vector<path_point>> intersection_candidates,
     std::vector<intersection>& new_intersections,
@@ -688,38 +852,37 @@ auto compare_states(state_type v1, state_type v2) -> bool {
   }
 } */
 
-auto ADHM::self_intersections(std::vector<Path>::iterator path_it) -> std::vector<intersection> {
-    SinglePathMap path_map = SinglePathMap(path_it);
-    path_map.get_self_intersections();
-    return path_map.intersections;
+auto ADHM::self_intersections(std::vector<Path>::iterator path_it)
+    -> std::vector<intersection> {
+  SinglePathMap path_map = SinglePathMap(path_it);
+  path_map.get_self_intersections();
+  return path_map.intersections;
 }
 
-auto ADHM::two_path_intersections(std::vector<Path>::iterator path_A_it, std::vector<Path>::iterator path_B_it) -> std::vector<intersection> {
-    SinglePathMap path_A_map = SinglePathMap(path_A_it);
-    SinglePathMap path_B_map = SinglePathMap(path_B_it);
-    Map two_path_map;
-    if(path_B_it->path_id_ == 3) {
-      for(auto& pp : path_B_map.pp_vec) {
-          if(pp.t.at(kIndexStartTime) < 35) {
-            continue;
-          }
-          // print_path_point(pp);
-          if(pp.t.at(kIndexStartTime) > 38) {
-              break;
-          }
+auto ADHM::two_path_intersections(std::vector<Path>::iterator path_A_it,
+                                  std::vector<Path>::iterator path_B_it)
+    -> std::vector<intersection> {
+  SinglePathMap path_A_map = SinglePathMap(path_A_it);
+  SinglePathMap path_B_map = SinglePathMap(path_B_it);
+  Map two_path_map;
+  if (path_B_it->path_id_ == 3) {
+    for (auto& pp : path_B_map.pp_vec) {
+      if (pp.t.at(kIndexStartTime) < 35) {
+        continue;
+      }
+      // print_path_point(pp);
+      if (pp.t.at(kIndexStartTime) > 38) {
+        break;
       }
     }
-    two_path_map.add_path(path_A_map.pp_vec);
-    return two_path_map.get_intersections(path_B_map.pp_vec);
+  }
+  two_path_map.add_path(path_A_map.pp_vec);
+  return two_path_map.get_intersections(path_B_map.pp_vec);
 }
 
-auto ADHM::add_to_map(std::vector<Path>::iterator path_it) -> void {
+auto ADHM::add_to_map(std::vector<Path>::iterator path_it) -> void {}
 
-}
-
-auto ADHM::handle_new_intersections() -> void {
-
-}
+auto ADHM::handle_new_intersections() -> void {}
 
 auto line_intersection(std::array<cplx, 2> A, std::array<cplx, 2> B, cplx& z)
     -> bool {
@@ -745,95 +908,94 @@ auto line_intersection(std::array<cplx, 2> A, std::array<cplx, 2> B, cplx& z)
   return false;
 }
 
-auto intersect_states(state_type state_A, state_type state_B, state_type& new_state) -> bool {
-  
-    if(std::abs(std::exp(state_A.at(kIndexY1)) - std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
-        new_state.at(kIndexX) = state_A.at(kIndexX);
-        new_state.at(kIndexY1) = std::log(std::exp(state_B.at(kIndexY1))) ;
-        new_state.at(kIndexY2) = std::log(std::exp(state_A.at(kIndexY2)));
-        return true;
-    }
-    if(std::abs(std::exp(state_A.at(kIndexY2)) - std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
-        new_state.at(kIndexX) = state_A.at(kIndexX);
-        new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
-        new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY2)));
-        return true;
-    }
-    if (std::abs(std::exp(state_A.at(kIndexY1)) -
-                      std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance && std::abs(std::exp(state_A.at(kIndexY2)) -
-                      std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
-        new_state.at(kIndexX) = state_A.at(kIndexX);
-        new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
-        new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
-        return true;
-    }
-    print_state_type(state_A);
-    print_state_type(state_B);
-    return false;
+auto intersect_states(state_type state_A, state_type state_B,
+                      state_type& new_state) -> bool {
+  if (std::abs(std::exp(state_A.at(kIndexY1)) -
+               std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
+    new_state.at(kIndexX) = state_A.at(kIndexX);
+    new_state.at(kIndexY1) = std::log(std::exp(state_B.at(kIndexY1)));
+    new_state.at(kIndexY2) = std::log(std::exp(state_A.at(kIndexY2)));
+    return true;
+  }
+  if (std::abs(std::exp(state_A.at(kIndexY2)) -
+               std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
+    new_state.at(kIndexX) = state_A.at(kIndexX);
+    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
+    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY2)));
+    return true;
+  }
+  if (std::abs(std::exp(state_A.at(kIndexY1)) -
+               std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance &&
+      std::abs(std::exp(state_A.at(kIndexY2)) -
+               std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
+    new_state.at(kIndexX) = state_A.at(kIndexX);
+    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
+    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
+    return true;
+  }
+  print_state_type(state_A);
+  print_state_type(state_B);
+  return false;
 }
 
-auto ADHM::compute_intersection_points(intersection& inter, 
-      std::vector<Path>::iterator path_A_it, 
-      std::vector<Path>::iterator path_B_it,
-      int32_t n,
-      state_type& new_state) -> bool {
-    cplx z;
-    // uint32_t A_id{inter.ids.at(kIndexFirstPath)};
-    // uint32_t B_id{inter.ids.at(kIndexSecondPath)};
+auto ADHM::compute_intersection_points(intersection& inter,
+                                       std::vector<Path>::iterator path_A_it,
+                                       std::vector<Path>::iterator path_B_it,
+                                       int32_t n, state_type& new_state)
+    -> bool {
+  cplx z;
+  // uint32_t A_id{inter.ids.at(kIndexFirstPath)};
+  // uint32_t B_id{inter.ids.at(kIndexSecondPath)};
 
-    uint32_t A_start_time{inter.times.at(kIndexFirstPath).at(kIndexStartTime)};
-    uint32_t A_end_time{inter.times.at(kIndexFirstPath).at(kIndexEndTime)};
+  uint32_t A_start_time{inter.times.at(kIndexFirstPath).at(kIndexStartTime)};
+  uint32_t A_end_time{inter.times.at(kIndexFirstPath).at(kIndexEndTime)};
 
-    uint32_t B_start_time{inter.times.at(kIndexSecondPath).at(kIndexStartTime)};
-    uint32_t B_end_time{inter.times.at(kIndexSecondPath).at(kIndexEndTime)};
-    
-    std::array<cplx, 2> pt_A;
-    std::array<cplx, 2> pt_B;
+  uint32_t B_start_time{inter.times.at(kIndexSecondPath).at(kIndexStartTime)};
+  uint32_t B_end_time{inter.times.at(kIndexSecondPath).at(kIndexEndTime)};
 
-    
-    for(uint32_t t_A = A_start_time - 10; t_A < A_end_time + 10; t_A++) {
-            if(t_A < 0) {
-                continue;
-            }
-            if(t_A > path_A_it->get_length()) {
-                return false;
-            }
+  std::array<cplx, 2> pt_A;
+  std::array<cplx, 2> pt_B;
 
-            for(uint32_t t_B = B_start_time - 10; t_B < B_end_time + 10; t_B++) {
-                if(t_B < 0) {
-                  continue;
-                }
-                if(t_B > path_B_it->get_length()) {
-                  return false;
-                }
+  for (uint32_t t_A = A_start_time - 10; t_A < A_end_time + 10; t_A++) {
+    if (t_A < 0) {
+      continue;
+    }
+    if (t_A > path_A_it->get_length()) {
+      return false;
+    }
 
-                pt_A = {path_A_it->get_point(t_A).at(kIndexX),
-                        path_A_it->get_point(t_A + 1).at(kIndexX)};
-                pt_B = {path_B_it->get_point(t_B).at(kIndexX),
-                        path_B_it->get_point(t_B + 1).at(kIndexX)};
-
-                if (line_intersection(pt_A, pt_B, z)) {
-                    spdlog::debug("Line intersection found at {}", complex_to_string(z));
-                    state_type state_A = path_A_it->get_point(t_A);
-                    state_type state_B = path_B_it->get_point(t_B);
-                    inter.times.at(kIndexFirstPath).at(kIndexStartTime) = t_A;
-                    inter.times.at(kIndexFirstPath).at(kIndexEndTime) = t_A + 1;
-                    inter.times.at(kIndexSecondPath).at(kIndexStartTime) = t_B ;
-                    inter.times.at(kIndexSecondPath).at(kIndexEndTime) = t_B + 1;
-                    state_A.at(kIndexX) = z;
-                    state_B.at(kIndexX) = z;
-                    curve_->match_fiber(state_A);
-                    curve_->match_fiber(state_B);
-                    if(intersect_states(state_A, state_B, new_state))
-                    {
-                      new_state.at(kIndexY1) += 2*pi * J * static_cast<double>(n);  
-                      spdlog::debug("Return state!");
-                      return true;
-                    }
-                }
-            }
-        }
+    for (uint32_t t_B = B_start_time - 10; t_B < B_end_time + 10; t_B++) {
+      if (t_B < 0) {
+        continue;
+      }
+      if (t_B > path_B_it->get_length()) {
         return false;
+      }
+
+      pt_A = {path_A_it->get_point(t_A).at(kIndexX),
+              path_A_it->get_point(t_A + 1).at(kIndexX)};
+      pt_B = {path_B_it->get_point(t_B).at(kIndexX),
+              path_B_it->get_point(t_B + 1).at(kIndexX)};
+
+      if (line_intersection(pt_A, pt_B, z)) {
+        spdlog::debug("Line intersection found at {}", complex_to_string(z));
+        state_type state_A = path_A_it->get_point(t_A);
+        state_type state_B = path_B_it->get_point(t_B);
+        inter.times.at(kIndexFirstPath).at(kIndexStartTime) = t_A;
+        inter.times.at(kIndexFirstPath).at(kIndexEndTime) = t_A + 1;
+        inter.times.at(kIndexSecondPath).at(kIndexStartTime) = t_B;
+        inter.times.at(kIndexSecondPath).at(kIndexEndTime) = t_B + 1;
+        state_A.at(kIndexX) = z;
+        state_B.at(kIndexX) = z;
+        curve_->match_fiber(state_A);
+        curve_->match_fiber(state_B);
+        if (intersect_states(state_A, state_B, new_state)) {
+          new_state.at(kIndexY1) += 2 * pi * J * static_cast<double>(n);
+          spdlog::debug("Return state!");
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
-
-

@@ -34,7 +34,7 @@
                        counter * 1.0 / distance * (end_coord_real) +
                        1.0 /2;  // Draw line from middle of the pixel.
     ghost_coord_imag = (1 - counter * 1.0 / distance) * (start_coord_imag) +
-                       counter * 1.0 / distance * (end_coord_imag) + 1.0 / 2;  //
+                       counter * 1.0 / distance * (end_coord_imag) + 1.0 / 2; //
     if (static_cast<int32_t>(ghost_coord_real + kNumOffset) !=
             next_pp.coordinate_real ||
         static_cast<int32_t>(ghost_coord_imag + kNumOffset) !=
@@ -71,8 +71,8 @@ auto Map::get_pixel_content(std::array<int32_t, 2> coordinates)
   return map_data_[coordinates];
 }
 
-//WARN: This is defined twice.
-// We will probably remove it from nets.cpp).
+// WARN: This is defined twice.
+//  We will probably remove it from nets.cpp).
 auto neighbour_pixel(std::array<int32_t, 2> coord_arr1,
                      std::array<int32_t, 2> coord_arr2) -> bool {
   return !(std::max(std::abs(coord_arr1.at(kIndexCoordReal) -
@@ -81,7 +81,7 @@ auto neighbour_pixel(std::array<int32_t, 2> coord_arr1,
                              coord_arr2.at(kIndexCoordImag))) > 1);
 }
 
-//WARN:: This defined twice.
+// WARN:: This defined twice.
 auto valid_coordinates(path_point pp) -> bool {
   if (pp.coordinate_real < 0 || pp.coordinate_real >= kMapResolutionReal) {
     return false;
@@ -92,58 +92,68 @@ auto valid_coordinates(path_point pp) -> bool {
   return true;
 }
 
-auto handle_intersection(const path_point& pp, const std::vector<path_point>& map_pp_vec, std::vector<intersection>& intersections) -> void {
+auto handle_intersection(const path_point& pp,
+                         const std::vector<path_point>& map_pp_vec,
+                         std::vector<intersection>& intersections) -> void {
   std::array<int32_t, 2> coord_arr{pp.coordinate_real, pp.coordinate_imag};
-  for(const auto& map_pp : map_pp_vec) {
+  for (const auto& map_pp : map_pp_vec) {
     bool map_pp_inserted{false};
     for (auto& inter : intersections) {
-        //NOTE: Check Ids.
-        if(map_pp.id != inter.ids.at(kIndexFirstPath) || pp.id != inter.ids.at(kIndexSecondPath)) {
-            continue;
-        }
-        //NOTE: Check if pixel are next to each other.
-        if(!neighbour_pixel(coord_arr, inter.coordinates.back())) {
-            // continue;
-        }
-        //WARN: This is maybe not very clean, since it could happen that we are close to an intersection in another path
-        if(pp.t.at(kIndexEndTime) - inter.times.at(kIndexSecondPath).at(kIndexEndTime) > 1) {
-            continue;
-        }
-        inter.coordinates.push_back(coord_arr);
-        inter.times.at(kIndexSecondPath).at(kIndexEndTime) = pp.t.at(kIndexEndTime);
-        if (map_pp.t.at(kIndexEndTime) > inter.times.at(kIndexFirstPath).at(kIndexEndTime))
-        {
-            inter.times.at(kIndexFirstPath).at(kIndexEndTime) = map_pp.t.at(kIndexEndTime);
-        }
-        if (map_pp.t.at(kIndexStartTime) < inter.times.at(kIndexFirstPath).at(kIndexStartTime)) {
-            inter.times.at(kIndexFirstPath).at(kIndexStartTime) = map_pp.t.at(kIndexStartTime);
-        }
-        map_pp_inserted = true;
-        break;
+      // NOTE: Check Ids.
+      if (map_pp.id != inter.ids.at(kIndexFirstPath) ||
+          pp.id != inter.ids.at(kIndexSecondPath)) {
+        continue;
+      }
+      // NOTE: Check if pixel are next to each other.
+      if (!neighbour_pixel(coord_arr, inter.coordinates.back())) {
+        // continue;
+      }
+      // WARN: This is maybe not very clean, since it could happen that we are
+      // close to an intersection in another path
+      if (pp.t.at(kIndexEndTime) -
+              inter.times.at(kIndexSecondPath).at(kIndexEndTime) >
+          1) {
+        continue;
+      }
+      inter.coordinates.push_back(coord_arr);
+      inter.times.at(kIndexSecondPath).at(kIndexEndTime) =
+          pp.t.at(kIndexEndTime);
+      if (map_pp.t.at(kIndexEndTime) >
+          inter.times.at(kIndexFirstPath).at(kIndexEndTime)) {
+        inter.times.at(kIndexFirstPath).at(kIndexEndTime) =
+            map_pp.t.at(kIndexEndTime);
+      }
+      if (map_pp.t.at(kIndexStartTime) <
+          inter.times.at(kIndexFirstPath).at(kIndexStartTime)) {
+        inter.times.at(kIndexFirstPath).at(kIndexStartTime) =
+            map_pp.t.at(kIndexStartTime);
+      }
+      map_pp_inserted = true;
+      break;
     }
 
-    if(!map_pp_inserted) {
-        intersection new_intersection;
-        new_intersection.ids ={map_pp.id, pp.id};
-        new_intersection.coordinates.push_back(coord_arr);
-        new_intersection.times = {map_pp.t,pp.t};
-        intersections.push_back(new_intersection);
+    if (!map_pp_inserted) {
+      intersection new_intersection;
+      new_intersection.ids = {map_pp.id, pp.id};
+      new_intersection.coordinates.push_back(coord_arr);
+      new_intersection.times = {map_pp.t, pp.t};
+      intersections.push_back(new_intersection);
     }
   }
 }
 
-auto Map::get_intersections(const std::vector<path_point>& pp_vec) -> std::vector<intersection> {
-    std::vector<intersection> intersections;
-    for (const auto& pp : pp_vec) {
-        auto map_pt = map_data_.find(std::array<int32_t, 2>{pp.coordinate_real, pp.coordinate_imag});
-        if (map_pt != map_data_.end()) {
-            handle_intersection(pp, map_pt->second, intersections);
-        }
-
+auto Map::get_intersections(const std::vector<path_point>& pp_vec)
+    -> std::vector<intersection> {
+  std::vector<intersection> intersections;
+  for (const auto& pp : pp_vec) {
+    auto map_pt = map_data_.find(
+        std::array<int32_t, 2>{pp.coordinate_real, pp.coordinate_imag});
+    if (map_pt != map_data_.end()) {
+      handle_intersection(pp, map_pt->second, intersections);
     }
-    return intersections;
+  }
+  return intersections;
 }
-
 
 /* auto Map::print_map_data() -> void {
   uint32_t counter = 0;
@@ -177,25 +187,26 @@ auto path_point_to_complex(path_point pp) -> cplx {
 auto SinglePathMap::get_self_intersections() -> void {
   spdlog::debug("In intersection check");
   for (auto& next_pp : pp_vec) {
-    std::array<int32_t, 2> coord_array = {next_pp.coordinate_real, next_pp.coordinate_imag};
+    std::array<int32_t, 2> coord_array = {next_pp.coordinate_real,
+                                          next_pp.coordinate_imag};
     // spdlog::debug("({},{})", coord_array.at(0), coord_array.at(1));
     auto map_pt = map_data_.find(coord_array);
     if (map_pt != map_data_.end()) {
-        // spdlog::debug("Intersection added");
-        handle_intersection(next_pp, map_pt->second, intersections);
+      // spdlog::debug("Intersection added");
+      handle_intersection(next_pp, map_pt->second, intersections);
     } else {
-      map_data_.insert({coord_array,
-                        {}});
+      map_data_.insert({coord_array, {}});
       map_pt = map_data_.find(coord_array);
     }
-        map_pt->second.push_back(next_pp);
+    map_pt->second.push_back(next_pp);
   }
   spdlog::debug("Leaving intersection check.");
 }
 
 auto Map::add_path(std::vector<path_point> pp_vec) -> void {
-    for (auto& next_pp : pp_vec) {
-        std::array<int32_t, 2> coord_array = {next_pp.coordinate_real, next_pp.coordinate_imag};
+  for (auto& next_pp : pp_vec) {
+    std::array<int32_t, 2> coord_array = {next_pp.coordinate_real,
+                                          next_pp.coordinate_imag};
     // spdlog::debug("({},{})", coord_array.at(0), coord_array.at(1));
     auto map_pt = map_data_.find(coord_array);
     if (map_pt == map_data_.end()) {

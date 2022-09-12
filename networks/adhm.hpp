@@ -24,6 +24,7 @@ class ADHM {
   }
 
   auto BPS_state(std::vector<uint32_t> pattern_vec) -> void;
+  auto backwards(std::vector<uint32_t> pattern_vec) -> void;
   auto custom_BPS() -> void;
 
  private:
@@ -54,22 +55,30 @@ class ADHM {
       std::vector<path_point>::iterator current_pp_it,
       std::vector<Path>::iterator current_path_it) -> bool;
   auto handle_new_intersections() -> void;
-  //WARN: This probably should go somewhere else, since this is generally associated to path and doesn't use any member variables.
+  // WARN: This probably should go somewhere else, since this is generally
+  // associated to path and doesn't use any member variables.
   //
-  auto self_intersection_handler(uint32_t id, bool truncate, int32_t n, uint32_t intersection_number, bool shift, bool swap) -> void;
-  auto self_intersections(std::vector<Path>::iterator path_it) -> std::vector<intersection>;
-  
-  auto two_path_intersection_handler(uint32_t id_A, uint32_t id_B, bool truncate_A, bool truncate_B, int32_t n, uint32_t intersection_number, bool shift, bool swap) -> void;
-  auto two_path_intersections(std::vector<Path>::iterator path_A_it, std::vector<Path>::iterator path_B_it) -> std::vector<intersection>;
+  auto self_intersection_handler(uint32_t id, bool truncate, int32_t n,
+                                 uint32_t intersection_number, bool shift,
+                                 bool swap) -> void;
+  auto self_intersections(std::vector<Path>::iterator path_it)
+      -> std::vector<intersection>;
 
-  auto shift_loop(uint32_t path_index, int32_t n, bool swap) -> void; 
+  auto two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
+                                     bool truncate_A, bool truncate_B,
+                                     int32_t n, uint32_t intersection_number,
+                                     bool shift, bool swap) -> void;
+  auto two_path_intersections(std::vector<Path>::iterator path_A_it,
+                              std::vector<Path>::iterator path_B_it)
+      -> std::vector<intersection>;
+
+  auto shift_loop(uint32_t path_index, int32_t n, bool swap) -> void;
   auto trivial_loop(uint32_t path_index) -> void;
 
-  auto compute_intersection_points(intersection& inter, 
-      std::vector<Path>::iterator path_A_it, 
-      std::vector<Path>::iterator path_B_it,
-      int32_t n,
-      state_type& new_state) -> bool;
+  auto compute_intersection_points(intersection &inter,
+                                   std::vector<Path>::iterator path_A_it,
+                                   std::vector<Path>::iterator path_B_it,
+                                   int32_t n, state_type &new_state) -> bool;
 
   // Path cutoff stuff.
   uint32_t path_2_endtime_;

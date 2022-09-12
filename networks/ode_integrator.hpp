@@ -18,10 +18,10 @@ using namespace boost::numeric::odeint;
 
 auto compute_dm(const state_type &v, const state_type &dv) -> double;
 
-auto ODE_euler_step(const std::shared_ptr<SW_curve>& curve,
+auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
                     std::vector<state_type> &v, std::vector<double> &masses,
                     const double step_size, double theta) -> void;
-auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve>& curve,
+auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> &curve,
                           std::vector<state_type> &v,
                           std::vector<double> &masses, const double step_size,
                           double theta) -> void;

@@ -8,4 +8,6 @@ case "$1" in
     -s | --show ) python sandbox.py all; feh -. graphics/test_graphic.png &;;
     -sf | --show_file ) feh -. graphics/"$2".png &;;
     -g | --git ) git add .; git commit -m "$2"; git push origin main;;
+    -u | --upload ) scp -r ./graphics/test_graphic.png senghaas@LIN5G.tphys.uni-heidelberg.de:~/WWW/research/files/network.png;;
+    -v | --venv ) source .venv/bin/activate;;
 esac

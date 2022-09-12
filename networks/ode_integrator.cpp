@@ -12,7 +12,7 @@ auto rotate_dv(state_type &dv, const double theta) -> void {
   dv.at(kIndexY2) *= std::exp(J * theta);
 }
 
-auto ODE_euler_step(const std::shared_ptr<SW_curve>& curve,
+auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
                     std::vector<state_type> &v, std::vector<double> &masses,
                     const double step_size, double theta) -> void {
   state_type dv;
@@ -22,7 +22,7 @@ auto ODE_euler_step(const std::shared_ptr<SW_curve>& curve,
   masses.push_back(masses.back() + compute_dm(v.back(), step_size * dv));
 }
 
-auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve>& curve,
+auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> &curve,
                           std::vector<state_type> &v,
                           std::vector<double> &masses, const double step_size,
                           double theta) -> void {

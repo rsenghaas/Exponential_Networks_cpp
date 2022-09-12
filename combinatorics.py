@@ -1,4 +1,4 @@
-numbers = [30,16,4,2,2,5,25,1,5,5]
+numbers = [22,8,2,1,10,25,1,4]
 
 
 for i in range(2**len(numbers)):
@@ -15,7 +15,7 @@ for i in range(2**len(numbers)):
     for k in range(len(numbers)):
         total += signs[k] * numbers[k]
 
-    if (total == 22):
+    if (total == 15):
         sret = ""
         for k in range(len(numbers)):
             if signs[k] < 0:

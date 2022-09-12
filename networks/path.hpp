@@ -38,10 +38,10 @@ class Path {
                           std::vector<uint32_t>& index_vec) -> void;
 
   auto get_point(uint32_t t) -> state_type;
-  auto get_length() -> uint32_t {return v_.size();}
+  auto get_length() -> uint32_t { return v_.size(); }
   auto print_data() -> void;
   auto save_data() -> void;
-  auto get_endmass() -> double {return masses_.back();}
+  auto get_endmass() -> double { return masses_.back(); }
   auto truncate(uint32_t t_start, uint32_t t_end) -> void;
 
   uint32_t path_id_;

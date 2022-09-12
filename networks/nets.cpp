@@ -133,8 +133,8 @@ auto Network::engineer_bound_states() -> void {
   }
 }
 
-//WARN: This is somewhat misplaced.
-//WARN: This is defined twice (also in maps.cpp).
+// WARN: This is somewhat misplaced.
+// WARN: This is defined twice (also in maps.cpp).
 
 auto neighbour_pixel(std::array<int32_t, 2> coord_arr1,
                      std::array<int32_t, 2> coord_arr2) -> bool {

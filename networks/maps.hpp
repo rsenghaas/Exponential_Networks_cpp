@@ -25,7 +25,8 @@ struct pixel {
 
 class Map {
  public:
-  auto get_intersections(const std::vector<path_point>& pp_vec) -> std::vector<intersection>;
+  auto get_intersections(const std::vector<path_point>& pp_vec)
+      -> std::vector<intersection>;
   auto draw_line(path_point pp1, path_point pp2)
       -> std::vector<std::vector<path_point>>;
   auto print_map_data() -> void;
@@ -34,7 +35,9 @@ class Map {
   auto add_path(std::vector<path_point> pp_vec) -> void;
 
  private:
-  // auto handle_intersection(const path_point& pp, const std::vector<path_point>& map_pp_vec, std::vector<intersection>& intersections) -> void;
+  // auto handle_intersection(const path_point& pp, const
+  // std::vector<path_point>& map_pp_vec, std::vector<intersection>&
+  // intersections) -> void;
   std::map<std::array<int32_t, 2>, std::vector<path_point>> map_data_;
 };
 
