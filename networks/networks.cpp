@@ -28,18 +28,19 @@ auto main(int argc, char* argv[]) -> int {
   for (auto& i : pattern_vec) {
     k += i;
   }
-  // k = 10;
-  const double epsilon = 0.3;
+  k = 6;
+  const double epsilon = 0;
   double k_pert = k - epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;
 
   double adhm_theta = std::arg(Z_total);
   std::cout << "\u03D1 = " << adhm_theta << ", M: " << std::abs(Z_total)
             << std::endl;
+  // adhm_theta = -0.01;
   ADHM adhm(adhm_theta);
   // adhm.backwards(pattern_vec);
-  adhm.BPS_state(pattern_vec);
-  // adhm.custom_BPS();
+  // adhm.BPS_state(pattern_vec);
+  adhm.custom_BPS();
 
   spdlog::info("You made it through the network!");
   return 0;
