@@ -36,6 +36,7 @@ auto ADHM::start_paths() -> void {
   ramification_points_ = curve_->get_ramification_points();
   for (auto& r : ramification_points_) {
     cplx b = r.at(kIndexX);
+    spdlog::debug("Branch point at x = {}.", complex_to_string(b));
     cplx y = r.at(kIndexY);
 
     state_type start_state;
@@ -269,8 +270,16 @@ auto ADHM::backwards(std::vector<uint32_t> pattern_vec) -> void {
     }
     current_index += 2;
   }
-  path_it = get_iterator_by_id(new_paths_, 2);
-  path_it->truncate(0, path_2_endtime_ + 1);
+  if(path_2_end_partner_ != 2) {
+    path_it = get_iterator_by_id(new_paths_, path_2_end_partner_);
+    auto next_state = path_it->get_endpoint();
+    path_it = get_iterator_by_id(new_paths_, 2);
+    auto endpoint = path_it->get_endpoint();
+    endpoint.at(kIndexX) = next_state.at(kIndexX);
+    curve_->match_fiber(endpoint);
+    path_it->truncate(0, path_2_endtime_);
+    path_it->add_single_point(endpoint);
+  }
   save_data(2);
 }
 
@@ -292,14 +301,18 @@ auto invert_state(state_type& v) -> void {
     v.at(kIndexY2) = Y1;
 }
 
+auto overwrite_path(std::vector<Path>::iterator path_it, const state_type& v) {
+    std::vector<state_type> v_vec = {v};
+    std::vector<double> masses_vec = {0};
+    Path new_path(v_vec, masses_vec, path_it->path_id_);
+    *path_it = new_path;
+}
+
 auto ADHM::custom_BPS() -> void {
   auto path_it = get_iterator_by_id(new_paths_, 0);
-  std::vector<state_type> v_cutoff = {cutoffPoint};
-  std::vector<double> masses_cutoff = {0};
-  Path cutoff_path(v_cutoff, masses_cutoff, 0);
-  *path_it = cutoff_path;
+  overwrite_path(path_it, cutoffPoint);
   evolve_path(path_it, 4 * kD4Cutoff);
-
+ 
   path_it = get_iterator_by_id(new_paths_, 1);
   evolve_path(path_it, kCutoff);
   
@@ -315,45 +328,100 @@ auto ADHM::custom_BPS() -> void {
   evolve_path(path_it, 1.0/4 * kCutoff);
   
   two_path_intersection_handler(2,3,true, true, 0,0,true,false);
+  save_data(2);
   save_data(3);
+  
+  uint32_t current_index = 4;
 
-  path_it = get_iterator_by_id(new_paths_, 4);
+
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,current_index,false, true, -1, 0, false, false);
+  save_data(current_index);
+  current_index++;
+  
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2,current_index ,false, true, 0,0,true,false);
+  save_data(current_index );
+  current_index++;
+
+
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,current_index ,false, true, -1, 0, false, false);
+  save_data(current_index);
+  current_index++;
+  
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2,current_index,false, true, 0,0,true,false);
+  save_data(current_index);
+  current_index++;  
+ 
+  path_it = get_iterator_by_id(new_paths_, current_index);
   auto endpoint = path_it->get_endpoint();
   invert_state(endpoint);
   add_new_path(endpoint);
   evolve_path(path_it, kCutoff);
-  two_path_intersection_handler(1,4,false, true, -1, 0, false, false);
-  save_data(4);
-  
-  path_it = get_iterator_by_id(new_paths_, 6);
+  two_path_intersection_handler(1,current_index,false, true, -1, 0, false, false);
+  save_data(current_index);
+  current_index++;
+
+  path_it = get_iterator_by_id(new_paths_, current_index);
   evolve_path(path_it, kCutoff);
-  two_path_intersection_handler(2,6,false,true, 0, 0, true, false);
-  save_data(6);
+
+
+  path_it = get_iterator_by_id(new_paths_, current_index + 1);
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(current_index + 1, current_index, true, true, -1, 0, false, false);
+  save_data(current_index);
+  current_index++;
+  save_data(current_index);
+  current_index++;
+
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  endpoint = path_it->get_endpoint();
+  endpoint.at(kIndexY1) -= 2 * pi * J;
+  // invert_state(endpoint);
+
+  overwrite_path(path_it, endpoint);
+    
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2,current_index,false,true, 0, 0, true, false);
+  save_data(current_index);
+  current_index++;
+
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  // two_path_intersection_handler(1,8,false,true, -1, 0, false, false);
+  save_data(current_index);
   
 
-  path_it = get_iterator_by_id(new_paths_, 7);
-  evolve_path(path_it, kCutoff);
-  two_path_intersection_handler(1,7,false,true, -1, 0, false, false);
-  save_data(7);
+  // two_path_intersection_handler(0,2,true,false, 0, 0, true, false);
+  // save_data(0);
 
-  path_it = get_iterator_by_id(new_paths_, 8);
+  /* path_it = get_iterator_by_id(new_paths_, 9);
   evolve_path(path_it, kCutoff);
   save_data(2);
 
-  path_it = get_iterator_by_id(new_paths_, 5);
-  evolve_path(path_it, kCutoff);
-  two_path_intersection_handler(5, 8, true, true, -1, 0, true, false);
+  two_path_intersection_handler(5, 9, true, true, -1, 0, true, false);
 
   save_data(5);
   save_data(8);
 
-  path_it =get_iterator_by_id(new_paths_, 9);
-  evolve_path(path_it, kCutoff);
-  two_path_intersection_handler(2, 9, false, true, 0,0, true, false);
-  save_data(9);
   
-  two_path_intersection_handler(0,2,true, false, 0,0, true, false);
-  save_data(0);
+  path_it =get_iterator_by_id(new_paths_, 10);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2, 10, false, true, 0,0, true, false);
+  save_data(9);
+  save_data(10);
+  
+  path_it = get_iterator_by_id(new_paths_, 11);
+  evolve_path(path_it, kCutoff);
+  save_data(11);
+  */
    
   /* auto path_it = get_iterator_by_id(new_paths_, 0);
   std::vector<state_type> v_cutoff = {cutoffPoint};
@@ -511,7 +579,7 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
 
   two_path_intersection_handler(0, 2, true, false, 0, 0, false, false);
   next_id_--;
-  save_data(0);
+  // save_data(0);
   new_paths_.pop_back();
   spdlog::debug("New paths size {}", new_paths_.size());
 
@@ -578,14 +646,26 @@ auto ADHM::BPS_state(std::vector<uint32_t> pattern_vec) -> void {
     spdlog::debug("Finished loop.");
   }
 
-  path_it = get_iterator_by_id(new_paths_, 2);
-  path_it->truncate(0, path_2_endtime_ + 1);
+  if(path_2_end_partner_ != 2) {
+    path_it = get_iterator_by_id(new_paths_, path_2_end_partner_);
+    auto next_state = path_it->get_endpoint();
+    path_it = get_iterator_by_id(new_paths_, 2);
+    auto endpoint = path_it->get_endpoint();
+    endpoint.at(kIndexX) = next_state.at(kIndexX);
+    curve_->match_fiber(endpoint);
+    path_it->truncate(0, path_2_endtime_);
+    path_it->add_single_point(endpoint);
+  }
   save_data(2);
   double M_total;
   for (auto& pth : new_paths_) {
     M_total += pth.get_endmass();
   }
   spdlog::debug("Mass: {}", M_total);
+  
+  path_it = get_iterator_by_id(new_paths_, current_index);
+  evolve_path(path_it, kCutoff);
+  save_data(current_index);
 
   // evolve_path(path_it, 4*kD4Cutoff);
   // save_data(current_index);
@@ -728,7 +808,10 @@ auto ADHM::self_intersection_handler(uint32_t id, bool truncate, int32_t n,
                         inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
       // BUG: This doesn't take care of the y's, one should probably make this
       // better via match_fiber!
-      path_it->add_single_point(next_state);
+      auto endpoint = path_it->get_endpoint();
+      endpoint.at(kIndexX) = next_state.at(kIndexX);
+      curve_->match_fiber(endpoint);
+      path_it->add_single_point(endpoint);
     }
     if (shift) {
       state_type shift_state = path_it->get_point(
@@ -783,22 +866,30 @@ auto ADHM::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
     spdlog::debug("Two path intersection.");
     if (id_A == 2 && inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) >
                          path_2_endtime_) {
+      path_2_end_partner_ = id_B;
       path_2_endtime_ = inter_it->times.at(kIndexFirstPath).at(kIndexEndTime);
     }
     if (id_B == 2 && inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) >
                          path_2_endtime_) {
+      path_2_end_partner_ = id_A;
       path_2_endtime_ = inter_it->times.at(kIndexSecondPath).at(kIndexEndTime);
     }
 
     if (truncate_A) {
       path_A_it->truncate(
           0, inter_it->times.at(kIndexFirstPath).at(kIndexEndTime));
-      path_A_it->add_single_point(next_state);
+      auto endpoint = path_A_it->get_endpoint();
+      endpoint.at(kIndexX) = next_state.at(kIndexX);
+      curve_->match_fiber(endpoint);
+      path_A_it->add_single_point(endpoint);
     }
     if (truncate_B) {
       path_B_it->truncate(
           0, inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
-      path_B_it->add_single_point(next_state);
+      auto endpoint = path_B_it->get_endpoint();
+      endpoint.at(kIndexX) = next_state.at(kIndexX);
+      curve_->match_fiber(endpoint);
+      path_B_it->add_single_point(endpoint);
     }
     if (shift) {
       auto shift_path_it = get_iterator_by_id(new_paths_, id_A);

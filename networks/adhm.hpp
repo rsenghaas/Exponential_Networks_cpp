@@ -18,7 +18,7 @@ auto H_c3(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
 
 class ADHM {
  public:
-  explicit ADHM(double theta) : theta_(theta), path_2_endtime_(0) {
+  explicit ADHM(double theta) : theta_(theta), path_2_endtime_(0), path_2_end_partner_(2) {
     curve_ = std::make_shared<SW_curve>(H_c3);
     start_paths();
   }
@@ -82,6 +82,7 @@ class ADHM {
 
   // Path cutoff stuff.
   uint32_t path_2_endtime_;
+  uint32_t path_2_end_partner_;
 };
 
 #endif  // ADHM_BPS_HPP_

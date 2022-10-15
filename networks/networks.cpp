@@ -23,12 +23,12 @@ auto main(int argc, char* argv[]) -> int {
   spdlog::set_level(spdlog::level::debug);
   spdlog::info("Welcome to Networks!");
   // Network net(H_c3, theta);
-  std::vector<uint32_t> pattern_vec{1,2,3,2,1,1,2,3,2,1};
+  std::vector<uint32_t> pattern_vec{1,2,2};
   uint32_t k = 0;
   for (auto& i : pattern_vec) {
     k += i;
   }
-  k = 6;
+  // k = 6;
   const double epsilon = 0;
   double k_pert = k - epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;
@@ -39,8 +39,8 @@ auto main(int argc, char* argv[]) -> int {
   // adhm_theta = -0.01;
   ADHM adhm(adhm_theta);
   // adhm.backwards(pattern_vec);
-  // adhm.BPS_state(pattern_vec);
-  adhm.custom_BPS();
+  adhm.BPS_state(pattern_vec);
+  // adhm.custom_BPS();
 
   spdlog::info("You made it through the network!");
   return 0;

@@ -14,7 +14,7 @@
 #include <vector>
 
 //! This is very ugly and should be changed.
-constexpr std::string_view kDataDirectory = "Uni/Exponential_Networks";
+constexpr std::string_view kDataDirectory = "Uni/Exponential_Networks_cpp";
 
 // Numerical constants.
 const double pi = std::numbers::pi;

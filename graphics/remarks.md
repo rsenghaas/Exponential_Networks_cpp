@@ -1,6 +1,20 @@
 Some comments on the systematics of the networks
 ------------------------------------------------
 
+Coincident networks:
+n = 1: -
+n = 2: (1,1) = (2)
+n = 3: (1,1,1) = (3)
+From now on only mention coincident networks, which are not trivially related by the symmetry of the 
+corresponding partitions.
+n = 4: -
+n = 5: (3,2) = (3,1,1) = (2,2,1)
+n = 6: (4,2) = (4,1,1)
+
+
+The following is depricated!!!
+
+
 We are looking for D4-nD0 bound states.
 
 n=1 to n=4

@@ -12,9 +12,11 @@ const std::vector<std::string_view> directory_paths{
 
 auto create_directories() -> void {
   fs::path root_path = fs::path(getenv("HOME"));
+  // std::string DataDirectory = fs::current_path();
   root_path /= kDataDirectory;
   fs::current_path(root_path);  // (3)
   std::cout << "Current path is " << fs::current_path() << '\n';
+  fs::remove_all("data");
   for (auto &p : directory_paths) {
     fs::create_directories(p);
   }
