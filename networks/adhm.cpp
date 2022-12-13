@@ -296,9 +296,9 @@ auto make_circe_line(std::vector<Path>& path_vec, uint32_t path_id) -> void {
 }
 
 auto invert_state(state_type& v) -> void {
-    cplx Y1 = v.at(kIndexY1);
+    cplx const y1_coord = v.at(kIndexY1);
     v.at(kIndexY1) = v.at(kIndexY2);
-    v.at(kIndexY2) = Y1;
+    v.at(kIndexY2) = y1_coord;
 }
 
 auto overwrite_path(std::vector<Path>::iterator path_it, const state_type& v) {
@@ -308,32 +308,64 @@ auto overwrite_path(std::vector<Path>::iterator path_it, const state_type& v) {
     *path_it = new_path;
 }
 
+auto normalize(const cplx& c) -> cplx {
+  auto im = c.imag();
+  im = std::fmod(im, 2*pi);
+  if(im < 0) {
+      im += 2*pi;
+  }
+  return c.real() + J*im;
+}
+
 auto ADHM::custom_BPS() -> void {
   spdlog::debug("Drawing state.");
+
   auto path_it = get_iterator_by_id(new_paths_, 0);
   overwrite_path(path_it, cutoffPoint);
   evolve_path(path_it, 4*kD4Cutoff);
+  // save_data(0);
  
   path_it = get_iterator_by_id(new_paths_, 1);
   evolve_path(path_it, kCutoff);
-  
-  self_intersection_handler(1, true, -1, 0, false, false);
-
-  path_it = get_iterator_by_id(new_paths_, 1);
+  path_it->truncate(0, 2000);
+  //self_intersection_handler(1, true, -1, 0, false, false);
   save_data(1);
 
-  path_it = get_iterator_by_id(new_paths_, 2);
-  evolve_path(path_it, 1.0/4 * kCutoff);
- 
-  path_it = get_iterator_by_id(new_paths_, 3);
-  evolve_path(path_it, 1.0/4 * kCutoff);
+  auto endpoint = path_it->get_endpoint();
 
-  two_path_intersection_handler(2, 3, false, false, 0, 0, false, false);
-  two_path_intersection_handler(2,3,true, true, 0,0,false,false);
+  endpoint.at(kIndexY2) = endpoint.at(kIndexY1) + 2*pi*J;
+  add_new_path(endpoint);
+  endpoint = path_it->get_endpoint();
+
+  endpoint.at(kIndexY2) -= 2*pi*J;
+  print_state_type(endpoint);
+
+  path_it = get_iterator_by_id(new_paths_, 2);
+  overwrite_path(path_it, endpoint);
+  evolve_path(path_it, 1.0 / 50 *kCutoff);
+  
+  path_it = get_iterator_by_id(new_paths_, 3);
+
+  evolve_path(path_it, 1.0 / 4 * kCutoff);
+   
+  two_path_intersection_handler(3,2,true,true,-1,0,false,false); 
   save_data(2);
   save_data(3);
-  
-  uint32_t current_index = 4;
+
+  path_it = get_iterator_by_id(new_paths_, 2);
+  endpoint = path_it->get_endpoint();
+  auto y2_coord = endpoint.at(kIndexY2);
+  // endpoint.at(kIndexY2) = endpoint.at(kIndexY1);
+  endpoint.at(kIndexY2) += 2 * pi *J;
+
+
+  path_it = get_iterator_by_id(new_paths_, 4);
+  overwrite_path(path_it, endpoint);
+  evolve_path(path_it, kCutoff);
+  save_data(4);
+
+
+  /*uint32_t current_index = 4;
   path_it = get_iterator_by_id(new_paths_, current_index);
   evolve_path(path_it, 1.0 / 4 * kCutoff);
   current_index++;
@@ -412,7 +444,7 @@ auto ADHM::custom_BPS() -> void {
   current_index++; 
   path_it = get_iterator_by_id(new_paths_, current_index);
   evolve_path(path_it, kCutoff);
-  save_data(current_index);
+  save_data(current_index); */
   // two_path_intersection_handler(0,2,true,false,0,0,false,false);
   // save_data(0);
   

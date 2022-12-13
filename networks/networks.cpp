@@ -28,7 +28,7 @@ auto main(int argc, char* argv[]) -> int {
   for (auto& i : pattern_vec) {
     k += i;
   }
-  k = 8;
+  k = 2;
   const double epsilon = 0;
   double k_pert = k - epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;

@@ -54,6 +54,8 @@ cc_library(
         "magic_numbers.h",
         ],
     copts= [
+        "-Wall",
+        "-Wextra",
         "-std=c++20",
         "-O3",
     ],

@@ -40,7 +40,7 @@ sing_tf = np.array([0, -1])
 branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
-if sys.argv[1] == "all":
+if True:
     fig = plt.figure(dpi=800)
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
@@ -51,9 +51,11 @@ if sys.argv[1] == "all":
         x_data = data[:, 0]
         if i in path_colors:
             order = 1
+            if path_colors[i] == blue:
+                order = 2
             color = path_colors[i]
         else:
-            order = 2
+            order = 3
             color = black
         plt.plot(x_data.real, x_data.imag, linewidth=0.8, color=color,
                  zorder=order)
@@ -71,27 +73,15 @@ if sys.argv[1] == "all":
              markersize=5,
                 fillstyle='none', linestyle='none', mew=2);
 
-    
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    scale = 0.4
+    shift_x = -1.0
+    shift_y = -0.1
+    plt.axis([-1.8*scale + shift_x, 0.1*scale +shift_x, -0.8*scale + shift_y,0.8*scale + shift_y])
     ax =plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     plt.axis('off')
     fig.tight_layout()
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
-
-
-else:
-    print("Rendering single path")
-    s1 = int(sys.argv[1])
-    fig = plt.figure(dpi=1000)
-    # for i in range(6):
-    filename= f'data/path_data/path_data_{s1}.csv'
-    data = np.loadtxt(filename,delimiter=",", dtype=np.complex_)
-    data = transform(data)
-    x_data = data[:, 0]
-    plt.plot(x_data.real, x_data.imag)
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
-
+    # plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
+    plt.savefig(output_dir + '/network_zoom.png',dpi=fig.dpi)
+    # plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
