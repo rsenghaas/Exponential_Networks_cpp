@@ -327,7 +327,7 @@ auto ADHM::custom_BPS() -> void {
  
   path_it = get_iterator_by_id(new_paths_, 1);
   evolve_path(path_it, kCutoff);
-  path_it->truncate(0, 2000);
+  path_it->truncate(0, 1550);
   //self_intersection_handler(1, true, -1, 0, false, false);
   save_data(1);
 
