@@ -13,10 +13,9 @@
 auto Network::start_path() -> void {
   for (auto& r : ramification_points_) {
     cplx b = r.at(kIndexX);
+    spdlog::debug("Branch point at x = {}.", complex_to_string(b));
     cplx y = r.at(kIndexY);
-    spdlog::debug("Numerical Check: H(b, y) = {}.",
-                  complex_to_string(curve_->eval_H(b, y)));
-
+    
     state_type start_state;
     start_state.at(kIndexX) = b;
     start_state.at(kIndexY1) = std::log(y);
@@ -76,6 +75,7 @@ auto Network::start_path() -> void {
 
       Path path(v, masses, new_paths_.size());
       new_paths_.push_back(std::move(path));
+      next_id_++;
 
       spdlog::debug("Path {} appended.", new_paths_.back().path_id_);
       spdlog::debug(

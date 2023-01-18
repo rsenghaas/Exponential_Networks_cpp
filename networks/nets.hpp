@@ -47,6 +47,7 @@ class Network {
  private:
   // Network parameter.
   double theta_;
+  uint32_t next_id_{0};
 
   // SW_curve data.
   std::shared_ptr<SW_curve> curve_;
