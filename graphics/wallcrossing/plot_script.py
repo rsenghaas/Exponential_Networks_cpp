@@ -23,7 +23,7 @@ orange = '#ffa500'
 
 path_colors = {3: green, 7: grey, 9: grey, 10:red, 12: grey, 13: red}
 
-partition = 'other_surgery'
+partition = 'wallcrossing'
 #TODO: Need to change directories, so we can actually run that from the subdirectories.
 if os.path.exists('./plot_script.py'):
     output_dir = '.'
@@ -72,13 +72,12 @@ if sys.argv[1] == "all":
                 fillstyle='none', linestyle='none', mew=2);
 
     
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-0.4, 0.1, -0.21, 0.21])
     ax =plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     plt.axis('off')
     fig.tight_layout()
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
 

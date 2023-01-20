@@ -323,9 +323,39 @@ auto ADHM::custom_BPS() -> void {
   auto path_it = get_iterator_by_id(new_paths_, 0);
   overwrite_path(path_it, cutoffPoint);
   evolve_path(path_it, 4*kD4Cutoff);
+  path_it->truncate(0,1480);
   // save_data(0);
- 
+
   path_it = get_iterator_by_id(new_paths_, 1);
+  evolve_path(path_it, kCutoff);
+  path_it->truncate(0, 1540);
+  // self_intersection_handler(1, true, -1, 0, false, false);
+    
+  path_it = get_iterator_by_id(new_paths_, 2);
+  evolve_path(path_it, kCutoff);
+  self_intersection_handler(2, true, 1, 0, false, false);
+  save_data(2);
+
+  // self_intersection_handler(1, true, -1, 0, false, false);
+  
+
+  path_it = get_iterator_by_id(new_paths_, 3);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(1,3, true,true, 1,0,false,false);
+  // save_data(2);
+  save_data(1);
+  save_data(3);
+
+
+
+  path_it = get_iterator_by_id(new_paths_, 4);
+  evolve_path(path_it, kCutoff);
+  save_data(4);
+
+
+
+ 
+  /*path_it = get_iterator_by_id(new_paths_, 1);
   evolve_path(path_it, kCutoff);
   path_it->truncate(0, 1850);
   //self_intersection_handler(1, true, -1, 0, false, false);
@@ -358,11 +388,10 @@ auto ADHM::custom_BPS() -> void {
   // endpoint.at(kIndexY2) = endpoint.at(kIndexY1);
   endpoint.at(kIndexY2) += 2 * pi *J;
 
-
   path_it = get_iterator_by_id(new_paths_, 4);
   overwrite_path(path_it, endpoint);
   evolve_path(path_it, kCutoff);
-  save_data(4);
+  save_data(4);*/
 
 
   /*uint32_t current_index = 4;

@@ -23,7 +23,7 @@ orange = '#ffa500'
 
 path_colors = {3: green, 7: grey, 9: grey, 10:red, 12: grey, 13: red}
 
-partition = 'other_surgery'
+partition = 'wallcrossing'
 #TODO: Need to change directories, so we can actually run that from the subdirectories.
 if os.path.exists('./plot_script.py'):
     output_dir = '.'

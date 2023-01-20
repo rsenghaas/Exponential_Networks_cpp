@@ -36,7 +36,8 @@ auto main(int argc, char* argv[]) -> int {
   double adhm_theta = std::arg(Z_total);
   std::cout << "\u03D1 = " << adhm_theta << ", M: " << std::abs(Z_total)
             << std::endl;
-  // adhm_theta = 0;
+  // adhm_theta *= -1;
+  // adhm_theta += 0.0008;
   ADHM adhm(adhm_theta);
   // adhm.backwards(pattern_vec);
   // adhm.BPS_state(pattern_vec);
