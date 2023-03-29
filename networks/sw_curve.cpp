@@ -1,4 +1,9 @@
 #include "sw_curve.hpp"
+#include <arb.h>
+#include <acb.h>
+#include <acb_elliptic.h>
+
+  
 
 auto SW_curve::compute_derivatives() -> void {
   dH_dx_ = H_.diff(x_);
@@ -74,6 +79,33 @@ auto SW_curve::sw_differential(const state_type &v, state_type &dv) -> void {
                     eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY2))) *
                     dv.at(kIndexX) / std::exp(v.at(kIndexY2));
 }
+
+auto SW_curve::elliptic_differential(const state_type &v, state_type &dv) -> void {
+  acb_t p_y1, p_y2, tau, y1, y2; 
+  acb_init(y1);
+  acb_init(y2);
+  acb_init(tau);
+  acb_init(p_y1);
+  acb_init(p_y2);
+  acb_set_d_d(y1, v.at(kIndexY1).real(), v.at(kIndexY1).imag());
+  acb_set_d_d(y2, v.at(kIndexY2).real(), v.at(kIndexY2).imag());
+  acb_onei(tau);
+  acb_elliptic_p(p_y1, y1, tau, 50);
+  acb_elliptic_p(p_y2, y2, tau, 50);
+  
+  cplx p_y1_d = acb_to_cplx(p_y1);
+  cplx p_y2_d = acb_to_cplx(p_y2);
+
+  dv.at(kIndexX) = v.at(kIndexX) / (v.at(kIndexY2) - v.at(kIndexY1));
+  dv.at(kIndexY1) = -eval_dH_dx(v.at(kIndexX), p_y1_d) /
+                    eval_dH_dy(v.at(kIndexX), p_y1_d) *
+                    dv.at(kIndexX) / p_y1_d;
+  dv.at(kIndexY2) = -eval_dH_dx(v.at(kIndexX), p_y2_d) /
+                    eval_dH_dy(v.at(kIndexX), p_y2_d) *
+                    dv.at(kIndexX) / p_y2_d; 
+}
+
+
 
 auto SW_curve::get_fiber(const cplx &x) -> std::vector<cplx> {
   GiNaC::ex fiber_poly = H_.subs({x_ == complex_to_ex(x)});

@@ -22,6 +22,16 @@ auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
   masses.push_back(masses.back() + compute_dm(v.back(), step_size * dv));
 }
 
+auto ODE_elliptic_euler_step(const std::shared_ptr<SW_curve> &curve,
+                    std::vector<state_type> &v, std::vector<double> &masses,
+                    const double step_size, double theta) -> void {
+  state_type dv;
+  curve->elliptic_differential(v.back(), dv);
+  rotate_dv(dv, theta);
+  v.push_back(v.back() + step_size * dv);
+  masses.push_back(masses.back() + compute_dm(v.back(), step_size * dv));
+}
+
 auto ODE_runge_kutta_step(const std::shared_ptr<SW_curve> &curve,
                           std::vector<state_type> &v,
                           std::vector<double> &masses, const double step_size,
@@ -86,6 +96,11 @@ auto ODE_integrator::get_masses() -> std::vector<double> { return obs_.masses; }
 void ODE_differential::operator()(const state_type &v, state_type &dv,
                                   const double time) {
   std::lock_guard<std::mutex> guard(curve_->sw_mutex);
-  curve_->sw_differential(v, dv);
+  if(curve_->mode == "elliptic"){
+    curve_->elliptic_differential(v, dv);
+  } 
+  else {
+      curve_->sw_differential(v, dv);
+  }
   rotate_dv(dv, theta_);
 }

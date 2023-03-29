@@ -14,14 +14,15 @@
 #include <sstream>
 #include <vector>
 
+#include "arb_util.hpp"
 #include "ginac_util.hpp"
 #include "magic_numbers.h"
 #include "type_util.hpp"
 
 class SW_curve {
  public:
-  SW_curve(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &))
-      : x_("x"), y_("y"), H_(func(x_, y_)), dH_dx_(), dH_dy_(), d2H_dy2_() {
+  SW_curve(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &), std::string diff_mode)
+      : x_("x"), y_("y"), H_(func(x_, y_)), mode(std::move(diff_mode)), dH_dx_(), dH_dy_(), d2H_dy2_() {
     compute_derivatives();
   }
 
@@ -30,7 +31,8 @@ class SW_curve {
   auto eval_dH_dy(const cplx &x, const cplx &y) -> cplx;
   auto eval_d2H_dy2(const cplx &x, const cplx &y) -> cplx;
 
-  void sw_differential(const state_type &v, state_type &dv);
+  auto sw_differential(const state_type &v, state_type &dv) -> void;
+  auto elliptic_differential(const state_type &v, state_type &dv) -> void;
 
   auto get_branch_points() -> std::vector<cplx>;
   auto get_ramification_points() -> std::vector<std::array<cplx, 2>>;
@@ -39,7 +41,7 @@ class SW_curve {
   auto match_fiber(state_type &v) -> void;
 
   std::mutex sw_mutex;
-
+  std::string mode;
  private:
   GiNaC::symbol x_, y_;
   GiNaC::ex H_;

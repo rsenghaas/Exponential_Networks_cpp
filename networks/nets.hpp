@@ -31,7 +31,7 @@ class Network {
   Network(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &),
           double theta)
       : theta_(theta) {
-    curve_ = std::make_shared<SW_curve>(func);
+    curve_ = std::make_shared<SW_curve>(func, "");
     ramification_points_ = curve_->get_ramification_points();
     start_path();
   }

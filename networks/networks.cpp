@@ -2,8 +2,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <arb.h>
+#include <acb.h>
 
 #include "adhm.hpp"
+#include "elliptic.hpp"
 #include "files.hpp"
 #include "spdlog/spdlog.h"
 // #include "nets.hpp"
@@ -38,11 +41,12 @@ auto main(int argc, char* argv[]) -> int {
             << std::endl;
   // adhm_theta *= -1;
   // adhm_theta += 0.0008;
-  ADHM adhm(adhm_theta);
+  Elliptic elliptic(0.0);
   // adhm.backwards(pattern_vec);
   // adhm.BPS_state(pattern_vec);
-  adhm.custom_BPS();
+  elliptic.custom_BPS();
   spdlog::debug("{}", adhm_theta);
   spdlog::info("You made it through the network!");
-  return 0;
+  
+    return 0;
 }

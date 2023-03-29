@@ -13,3 +13,23 @@ http_archive(
         "https://storage.googleapis.com/mirror.tensorflow.org/gitlab.com/libeigen/eigen/-/archive/b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b/eigen-b02c384ef4e8eba7b8bdef16f9dc6f8f4d6a6b2b.tar.gz",
     ],
 )
+
+http_archive(
+  name = "arb_archive",
+  build_file = "@//include:arb.BUILD",
+  sha256 = "85541269cab5546c6021d4c27877e46f3e2c751fd6ce653f77c33be23044de96",
+  strip_prefix = "arb-bb52ca17acce8187acfa32acf31243a965138510",
+  urls = [
+    "https://github.com/fredrik-johansson/arb/archive/bb52ca17acce8187acfa32acf31243a965138510.tar.gz"
+  ]
+)
+
+http_archive(
+  name = "flint_archive",
+  build_file = "@//include:flint.BUILD",
+  sha256 = "9d11ad7a6338c939d8a132e13fde46a3c73187a6262ff2153c2e3b0297c0c633",
+  strip_prefix = "flint2-9b839c7b3f59bcb0bd5b7f5a96301c9d67639057",
+  urls = [
+    "https://github.com/flintlib/flint2/archive/9b839c7b3f59bcb0bd5b7f5a96301c9d67639057.tar.gz",
+  ]
+)

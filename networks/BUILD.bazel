@@ -20,6 +20,28 @@ cc_library(
 )
 
 cc_library(
+  name = "elliptic",
+  srcs = [
+    "elliptic.cpp",
+  ],
+  hdrs = [
+    "elliptic.hpp",
+  ],
+  copts = [
+    "-std=c++20",
+    "-O3",
+  ],
+  deps = [
+    ":arb",
+    ":path",
+    ":maps",
+    ":sw_curve",
+    ":util",
+    ":ode_integrator",
+  ]
+)
+
+cc_library(
     name = "adhm",
     srcs = [
         "adhm.cpp",
@@ -60,7 +82,9 @@ cc_library(
         "-O3",
     ],
     deps = [
+        ":arb",
         "@spdlog",
+        # "@arb_archive//:arb",
     ],
 )
 
@@ -86,6 +110,23 @@ cc_library(
         ":sw_curve",
         "@spdlog",
     ],
+)
+
+cc_library(
+  name = "arb",
+  srcs = [
+    "arb_util.cpp",
+  ],
+  hdrs = [
+    "arb_util.hpp",
+  ],
+  copts= [
+    "-std=c++20",
+    "-O3",
+  ],
+  deps = [
+    ":util",
+  ]
 )
 
 cc_library(
@@ -169,10 +210,13 @@ cc_binary(
     linkopts = [
         "-lginac",
         "-lcln",
+        "-larb",
+        "-lflint",
+        "-v",
     ],
     deps = [
         ":maps",
-        # ":nets",
+        ":elliptic",
         ":util",
         ":path",
         ":adhm",
