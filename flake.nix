@@ -38,7 +38,7 @@
             scripts.bazel.exec = (''
 
               BAZEL_CXXOPTS="-isystem${pkgs.llvmPackages_15.libcxx.dev}/include/c++/v1:-isystem${pkgs.glibc.dev}/include:-isystem${pkgs.ginac}/include:-isystem${pkgs.arb}/include:-isystem${pkgs.flint}/include:-isystem${pkgs.cln}/include:-isystem${pkgs.boost.dev}/include:-isystem${pkgs.gmp.dev}/include:-isystem${pkgs.mpfr.dev}/include"
-              BAZEL_LINKOPTS="-L${pkgs.glibc}/lib:-L${pkgs.llvmPackages_15.libcxx}/lib:-L${pkgs.llvmPackages_15.libcxxabi}/lib:-lc++:-Wl,-rpath,${pkgs.llvmPackages_15.libcxx}/lib,-rpath,${pkgs.llvmPackages_15.libcxxabi}/lib:-L${pkgs.ginac}/lib"
+              BAZEL_LINKOPTS="-L${pkgs.glibc}/lib:-L${pkgs.llvmPackages_15.libcxx}/lib:-L${pkgs.llvmPackages_15.libcxxabi}/lib:-lc++:-Wl,-rpath,${pkgs.llvmPackages_15.libcxx}/lib,-rpath,${pkgs.llvmPackages_15.libcxxabi}/lib:-L${pkgs.ginac}/lib:-L${pkgs.cln}/lib:-L${pkgs.flint}/lib:-L${pkgs.arb}/lib"
 
               if [[
                 "$1" == "build" ||
