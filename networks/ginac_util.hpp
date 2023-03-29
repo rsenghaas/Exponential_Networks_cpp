@@ -1,7 +1,6 @@
 #ifndef GINAC_UTIL_HPP_
 #define GINAC_UTIL_HPP_
 
-#include <fmt/core.h>
 #include <ginac/ginac.h>
 #include <spdlog/spdlog.h>
 

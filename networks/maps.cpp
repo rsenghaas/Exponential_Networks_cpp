@@ -1,5 +1,7 @@
 #include "maps.hpp"
 
+#include <format>
+
 // Note that we don't draw the first point, since this is the last point
 // of the previous line and we don't want doubling.
 //
@@ -158,13 +160,13 @@ auto Map::get_intersections(const std::vector<path_point>& pp_vec)
 /* auto Map::print_map_data() -> void {
   uint32_t counter = 0;
   for (auto px_it = map_data_.begin(); px_it != map_data_.end(); px_it++) {
-    std::string line = fmt::format(
+    std::string line = std::format(
         "#{} At {} there are {} paths: ", counter,
         complex_to_string(path_point_to_complex(px_it->second.pp_vec.front())),
         px_it->second.pp_vec.size());
     for (auto pp_it = px_it->second.pp_vec.begin();
          pp_it != px_it->second.pp_vec.end(); pp_it++) {
-      line.append(fmt::format(" {}", pp_it->id));
+      line.append(std::format(" {}", pp_it->id));
     }
     std::cout << line << std::endl;
   }

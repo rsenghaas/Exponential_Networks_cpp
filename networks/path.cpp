@@ -1,5 +1,7 @@
 #include "path.hpp"
 
+#include <format>
+
 auto get_path_point(state_type v) -> path_point {
   path_point pp;
   auto coord_real = static_cast<int32_t>(
@@ -162,7 +164,7 @@ auto Path::print_data() -> void {
 auto Path::save_data() -> void {
   std::fstream data_file;
   std::string filename =
-      fmt::format("data/path_data/path_data_{}.csv", path_id_);
+      std::format("data/path_data/path_data_{}.csv", path_id_);
   data_file.open(filename, std::ios::out);
   if (!data_file) {
     spdlog::debug("{} could not be created.", filename);
@@ -172,7 +174,7 @@ auto Path::save_data() -> void {
       double line_mass;
       boost::tie(line_v, line_mass) = zipped;
       std::string output_line =
-          fmt::format("{},{},{},{}\n", complex_to_string(line_v.at(kIndexX)),
+          std::format("{},{},{},{}\n", complex_to_string(line_v.at(kIndexX)),
                       complex_to_string(line_v.at(kIndexY1)),
                       complex_to_string(line_v.at(kIndexY2)), line_mass);
       data_file << output_line;

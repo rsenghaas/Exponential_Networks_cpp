@@ -37,8 +37,8 @@
     
             scripts.bazel.exec = (''
 
-              BAZEL_CXXOPTS="-nostdinc++:-nostdlib++:-isystem${pkgs.llvmPackages_15.libcxx.dev}/include/c++/v1"
-              BAZEL_LINKOPTS="-L${pkgs.llvmPackages_15.libcxx}/lib:-L${pkgs.llvmPackages_15.libcxxabi}/lib:-lc++:-Wl,-rpath,${pkgs.llvmPackages_15.libcxx}/lib,-rpath,${pkgs.llvmPackages_15.libcxxabi}/lib"
+              BAZEL_CXXOPTS="-isystem${pkgs.llvmPackages_15.libcxx.dev}/include/c++/v1:-isystem${pkgs.glibc.dev}/include:-isystem${pkgs.ginac}/include:-isystem${pkgs.arb}/include:-isystem${pkgs.flint}/include:-isystem${pkgs.cln}/include:-isystem${pkgs.boost.dev}/include:-isystem${pkgs.gmp.dev}/include:-isystem${pkgs.mpfr.dev}/include"
+              BAZEL_LINKOPTS="-L${pkgs.glibc}/lib:-L${pkgs.llvmPackages_15.libcxx}/lib:-L${pkgs.llvmPackages_15.libcxxabi}/lib:-lc++:-Wl,-rpath,${pkgs.llvmPackages_15.libcxx}/lib,-rpath,${pkgs.llvmPackages_15.libcxxabi}/lib:-L${pkgs.ginac}/lib"
 
               if [[
                 "$1" == "build" ||
@@ -56,11 +56,12 @@
             
             
             packages = [
-              # pkgs.arb 
-              # pkgs.flint
-              # pkgs.ginac
-              # pkgs.gmp
-              # pkgs.cln
+              pkgs.arb 
+              pkgs.flint
+              pkgs.ginac
+              pkgs.gmp
+              pkgs.cln
+              pkgs.mpfr
               pkgs.llvmPackages_15.clang
               pkgs.llvmPackages_15.compiler-rt
               pkgs.llvmPackages_15.libcxx
@@ -69,8 +70,7 @@
               pkgs.llvmPackages_15.lld
               pkgs.llvmPackages_15.stdenv
               pkgs.bazelisk
-              # pkgs.fmt
-              # pkgs.boost
+              pkgs.boost
             ]; 
 
             enterShell = ''

@@ -1,6 +1,5 @@
 #include "adhm.hpp"
 
-#include <fmt/core.h>
 #include <ginac/ginac.h>
 #include <spdlog/spdlog.h>
 

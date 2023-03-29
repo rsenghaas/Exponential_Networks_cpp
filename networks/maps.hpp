@@ -1,8 +1,6 @@
 #ifndef MAPS_HPP_
 #define MAPS_HPP_
 
-#include <fmt/core.h>
-
 #include <algorithm>
 #include <cmath>
 #include <complex>

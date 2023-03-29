@@ -1,6 +1,6 @@
 #include "nets.hpp"
 
-#include <fmt/core.h>
+#include <format>
 
 #include <fstream>
 #include <sstream>
@@ -437,9 +437,9 @@ auto Network::compute_intersection_points() -> void {
         s_B.append(complex_to_string(B));
       }
       std::string s_combined;
-      s_combined = fmt::format("{}\n{}", s_A, s_B);
+      s_combined = std::format("{}\n{}", s_A, s_B);
       save_string_to_file(
-          fmt::format("data/intersection_data/unsuccessful_{}.csv",
+          std::format("data/intersection_data/unsuccessful_{}.csv",
                       unsuccess_id),
           s_combined);
       spdlog::debug("Missing intersection #{} found", unsuccess_id);
@@ -465,7 +465,7 @@ auto Network::determine_sign(const state_type& r, state_type& v) -> void {
 
 auto Network::print_ramification_points() -> void {
   for (auto& r : ramification_points_) {
-    std::cout << fmt::format("The curve is ramified over x = {} at y = {}.",
+    std::cout << std::format("The curve is ramified over x = {} at y = {}.",
                              complex_to_string(r.at(kIndexX)),
                              complex_to_string(r.at(kIndexY)))
               << std::endl;

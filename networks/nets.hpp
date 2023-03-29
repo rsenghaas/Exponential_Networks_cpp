@@ -1,7 +1,6 @@
 #ifndef NETS_HPP_
 #define NETS_HPP_
 
-#include <fmt/core.h>
 #include <ginac/ginac.h>
 
 #include <cmath>

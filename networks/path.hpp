@@ -1,8 +1,6 @@
 #ifndef PATH_HPP_
 #define PATH_HPP_
 
-#include <fmt/core.h>
-
 #include <algorithm>
 #include <complex>
 #include <cstdlib>
