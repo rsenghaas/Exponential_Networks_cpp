@@ -1,6 +1,6 @@
 #include "type_util.hpp"
 
-#include <format>
+#include <string>
 
 auto print_intersection(const intersection &intersect) -> void {
   spdlog::debug("Ids are {} and {}", intersect.ids.at(kIndexFirstPath),
@@ -37,7 +37,7 @@ auto print_state_type(const state_type &v) -> void {
 auto complex_to_string(const std::complex<double> &z) -> std::string {
   std::string sign;
   sign = (z.imag() >= 0) ? "+" : "-";
-  return std::format("{}{}{}j", z.real(), sign, std::abs(z.imag()));
+  return std::to_string(z.real()) + sign + std::to_string(z.imag()) + "j";
 }
 
 auto get_log_sheet(state_type &v) -> int32_t {

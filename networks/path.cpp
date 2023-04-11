@@ -164,7 +164,9 @@ auto Path::print_data() -> void {
 auto Path::save_data() -> void {
   std::fstream data_file;
   std::string filename =
-      std::format("data/path_data/path_data_{}.csv", path_id_);
+      "data/path_data/path_data_" + 
+      std::to_string(path_id_) +
+      ".csv";
   data_file.open(filename, std::ios::out);
   if (!data_file) {
     spdlog::debug("{} could not be created.", filename);
@@ -173,10 +175,15 @@ auto Path::save_data() -> void {
       state_type line_v;
       double line_mass;
       boost::tie(line_v, line_mass) = zipped;
+      std::string sep = ",";
       std::string output_line =
-          std::format("{},{},{},{}\n", complex_to_string(line_v.at(kIndexX)),
+          complex_to_string(line_v.at(kIndexX)) + sep + 
+          complex_to_string(line_v.at(kIndexY1)) + sep +
+          complex_to_string(line_v.at(kIndexY2)) + sep + 
+          complex_to_string(line_v.at(kIndexY2)) + "\n";
+          /* std::format("{},{},{},{}\n", complex_to_string(line_v.at(kIndexX)),
                       complex_to_string(line_v.at(kIndexY1)),
-                      complex_to_string(line_v.at(kIndexY2)), line_mass);
+                      complex_to_string(line_v.at(kIndexY2)), line_mass);*/
       data_file << output_line;
     }
     spdlog::debug("Data saved to {}.", filename);

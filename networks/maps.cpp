@@ -1,7 +1,5 @@
 #include "maps.hpp"
 
-#include <format>
-
 // Note that we don't draw the first point, since this is the last point
 // of the previous line and we don't want doubling.
 //

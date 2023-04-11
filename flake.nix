@@ -37,8 +37,8 @@
     
             scripts.bazel.exec = (''
 
-              BAZEL_CXXOPTS="-isystem${pkgs.llvmPackages_15.libcxx.dev}/include/c++/v1:-isystem${pkgs.glibc.dev}/include:-isystem${pkgs.ginac}/include:-isystem${pkgs.arb}/include:-isystem${pkgs.flint}/include:-isystem${pkgs.cln}/include:-isystem${pkgs.boost.dev}/include:-isystem${pkgs.gmp.dev}/include:-isystem${pkgs.mpfr.dev}/include"
-              BAZEL_LINKOPTS="-L${pkgs.glibc}/lib:-L${pkgs.llvmPackages_15.libcxx}/lib:-L${pkgs.llvmPackages_15.libcxxabi}/lib:-lc++:-Wl,-rpath,${pkgs.llvmPackages_15.libcxx}/lib,-rpath,${pkgs.llvmPackages_15.libcxxabi}/lib:-L${pkgs.ginac}/lib:-L${pkgs.cln}/lib:-L${pkgs.flint}/lib:-L${pkgs.arb}/lib"
+              BAZEL_CXXOPTS="-isystem${pkgs.ginac}/include:-isystem${pkgs.arb}/include:-isystem${pkgs.flint}/include:-isystem${pkgs.cln}/include:-isystem${pkgs.boost.dev}/include:-isystem${pkgs.gmp.dev}/include:-isystem${pkgs.mpfr.dev}/include"
+              BAZEL_LINKOPTS="-L${pkgs.ginac}/lib:-L${pkgs.cln}/lib:-L${pkgs.flint}/lib:-L${pkgs.arb}/lib"
 
               if [[
                 "$1" == "build" ||
@@ -62,13 +62,8 @@
               pkgs.gmp
               pkgs.cln
               pkgs.mpfr
-              pkgs.llvmPackages_15.clang
-              pkgs.llvmPackages_15.compiler-rt
-              pkgs.llvmPackages_15.libcxx
-              pkgs.llvmPackages_15.libcxxabi
-              pkgs.llvmPackages_15.libunwind
-              pkgs.llvmPackages_15.lld
-              pkgs.llvmPackages_15.stdenv
+              pkgs.gcc12
+              pkgs.gcc12Stdenv
               pkgs.bazelisk
               pkgs.boost
             ]; 
@@ -79,13 +74,15 @@
 
 
               # Prevent rules_cc from using anything other than clang.
-              export CC=clang
+              # export CC=clang
 
               # Probably a bug in nix. Setting LD=ld.lld here doesn't work.
-              export LD=${pkgs.llvmPackages_15.lld}/bin/ld.lld
+              # export LD=${pkgs.llvmPackages_15.lld}/bin/ld.lld
 
               # Prettier color output for the ls command.
               alias ls='ls --color=auto'
+
+              echo ${pkgs.gcc12}
             '';
           }];
         };

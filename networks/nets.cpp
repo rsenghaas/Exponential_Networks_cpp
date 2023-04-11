@@ -1,7 +1,5 @@
 #include "nets.hpp"
 
-#include <format>
-
 #include <fstream>
 #include <sstream>
 
@@ -13,7 +11,7 @@
 auto Network::start_path() -> void {
   for (auto& r : ramification_points_) {
     cplx b = r.at(kIndexX);
-    spdlog::debug("Branch point at x = {}.", complex_to_string(b));
+    spdlog::debug("Branch point at x = {}.", complex_to_string(b));
     cplx y = r.at(kIndexY);
     
     state_type start_state;
@@ -437,11 +435,11 @@ auto Network::compute_intersection_points() -> void {
         s_B.append(complex_to_string(B));
       }
       std::string s_combined;
-      s_combined = std::format("{}\n{}", s_A, s_B);
+      /*s_combined = std::format("{}\n{}", s_A, s_B);
       save_string_to_file(
           std::format("data/intersection_data/unsuccessful_{}.csv",
                       unsuccess_id),
-          s_combined);
+          s_combined);*/
       spdlog::debug("Missing intersection #{} found", unsuccess_id);
       unsuccess_id++;
     }
