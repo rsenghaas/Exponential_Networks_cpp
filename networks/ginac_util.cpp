@@ -1,5 +1,8 @@
 #include "ginac_util.hpp"
 
+#include <iostream>
+#include <sstream>
+
 auto numeric_to_complex(const GiNaC::numeric &z) -> cplx {
   return GiNaC::real(z).to_double() + J * GiNaC::imag(z).to_double();
 }
@@ -33,6 +36,9 @@ auto sylvester_matrix(const GiNaC::ex &f, const GiNaC::ex &g,
 
 auto discriminant(const GiNaC::ex &f, const GiNaC::symbol &x) -> GiNaC::ex {
   GiNaC::matrix s_matrix = sylvester_matrix(f, f.diff(x), x);
+  std::stringstream disc_ss;
+  disc_ss << GiNaC::determinant(s_matrix);
+  std::cout << "Discriminant: " << disc_ss.str() << std::endl;
   return GiNaC::determinant(s_matrix);
 }
 

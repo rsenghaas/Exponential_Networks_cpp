@@ -41,12 +41,10 @@ auto main(int argc, char* argv[]) -> int {
             << std::endl;
   // adhm_theta *= -1;
   // adhm_theta += 0.0008;
-  Elliptic elliptic(0.0);
+  ADHM adhm(adhm_theta);
   // adhm.backwards(pattern_vec);
   // adhm.BPS_state(pattern_vec);
-  elliptic.custom_BPS();
+  adhm.custom_BPS();
   spdlog::debug("{}", adhm_theta);
   spdlog::info("You made it through the network!");
-  
-    return 0;
 }

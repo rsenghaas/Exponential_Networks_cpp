@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import sys
 import glob, os
@@ -8,8 +11,8 @@ import shutil
 import re
 
 def transform(z):
-    # return z
-    return z / ( 1/4 - z)
+    return z
+    # return z / ( 1/4 - z)
 
 
 
@@ -24,7 +27,7 @@ orange = '#ffa500'
 path_colors = {}
 # path_colors = {3: green, 7: grey, 9: grey, 10:red, 12: grey, 13: red}
 
-partition = 'Elliptic_test'
+partition = 'Coni_test'
 #TODO: Need to change directories, so we can actually run that from the subdirectories.
 if os.path.exists('./plot_script.py'):
     output_dir = '.'
@@ -42,11 +45,12 @@ branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
 if sys.argv[1] == "all":
-    fig = plt.figure(dpi=800)
+    fig = plt.figure(dpi=300)
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
         i = int(re.search('path_data_(.+?).csv', file).group(1))
+        print(i)
         data = np.loadtxt(file ,delimiter=",", dtype=np.complex_)
         data = transform(data)
         x_data = data[:, 0]

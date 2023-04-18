@@ -44,10 +44,10 @@ auto ADHM::start_paths() -> void {
     start_state.at(kIndexY2) = std::log(y);
 
     // Compute the expansion around a branch point.
-    // rsenghaas TODO: I should move this to the SW_curve class and compute it
+    // TODO: I should move this to the SW_curve class and compute it
     // generally (kappa = 1 / n! d^n H / dy^n * (1 / d H / dx))
     cplx kappa =
-        -1.0 / 2 * curve_->eval_d2H_dy2(b, y) / curve_->eval_dH_dx(b, y);
+        -1.0 / 2 * curve_->eval_d2H_dy2(b, y) / curve_->eval_dsH_dx(b, y);
 
     cplx dx;
     cplx dy;

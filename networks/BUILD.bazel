@@ -13,7 +13,7 @@ cc_library(
     hdrs = [
         "type_util.hpp",
         "magic_numbers.h",
-        "files.hpp",
+        "files.hpp", # TODO: This should be an extra target.
     ],
     copts= [
         "-std=c++20",
@@ -44,6 +44,22 @@ cc_library(
     ":util",
     ":ode_integrator",
   ]
+)
+
+# TODO: Ginac should be own target.
+
+cc_library(
+    name = "coni",
+    srcs = ["coni.cpp"],
+    hdrs = ["coni.hpp"],
+    copts = CXX_OPTS,
+    deps = [
+        ":util",
+        ":path",
+        ":maps",
+        ":sw_curve",
+        ":nets",
+    ]
 )
 
 cc_library(
@@ -229,6 +245,27 @@ cc_binary(
         ":sw_curve",
         "@spdlog",
     ],
+)
+
+# TODO: Shouldn't have to link arb here (used in sw_curve)
+
+cc_binary(
+    name = "coni_networks",
+    srcs = [
+        "coni_main.cpp",
+    ],
+    copts = CXX_OPTS,
+    linkopts = [
+        "-lginac",
+        "-lcln",
+        "-lflint",
+        "-larb",
+        "-v",
+    ],
+    deps = [
+        ":coni",
+        ":util",
+    ]
 )
 
 

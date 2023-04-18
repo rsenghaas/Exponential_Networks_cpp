@@ -1,5 +1,5 @@
-#ifndef ADHM_BPS_HPP_
-#define ADHM_BPS_HPP_
+#ifndef ADHM_HPP_
+#define ADHM_HPP_
 
 #include <ginac/ginac.h>
 
@@ -44,7 +44,6 @@ class ADHM {
   std::vector<Path> new_paths_;
 
   // Map.
-  Map map_;
   auto draw_map(std::vector<Path>::iterator path_it) -> void;
   auto add_to_map(std::vector<Path>::iterator path_it) -> void;
 
@@ -85,4 +84,4 @@ class ADHM {
   uint32_t path_2_end_partner_;
 };
 
-#endif  // ADHM_BPS_HPP_
+#endif  // ADHM_HPP_
