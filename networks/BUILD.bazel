@@ -5,6 +5,31 @@ CXX_OPTS = [
   "-O3",
 ]
 
+'''
+    If you can't compile in one go, you can use the test target with 
+
+        bazel build networks:test
+
+    in order to build the libraries one after another, 
+    in the following order:
+        1. :util
+        2. :arb
+        3. :sw_curve
+        4. :ode_integrator
+        5. :path
+        6. :maps
+        7. :nets
+    (this tags belong in deps eg. 
+        ...
+        deps = [ 
+            ":util",
+        ],
+        ...
+    )
+    After that you should be able to build 
+
+'''
+
 cc_library(
     name = "util",
     srcs = [
@@ -268,5 +293,22 @@ cc_binary(
     ]
 )
 
+cc_binary(
+    name = "test",
+    srcs = [
+        "test.cpp",
+    ],
+    copts = CXX_OPTS,
+    linkopts = [
+        "-lginac",
+        "-lcln",
+        "-lflint",
+        "-larb",
+        "-v",
+    ],
+    deps = [
+        ":sw_curve",
+    ]
+)
 
 
