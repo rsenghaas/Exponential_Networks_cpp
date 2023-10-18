@@ -55,8 +55,8 @@ class Network {
   auto evolve_path(std::vector<Path>::iterator path_it, double cutoff) -> void;
   auto add_new_path(state_type start_point) -> void;
   auto save_data(uint32_t id) -> void;
-  auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
-    -> std::vector<Path>::iterator;
+  auto get_iterator_by_id(std::vector<Path> &path_vec, uint32_t id)
+      -> std::vector<Path>::iterator;
   // auto determine_sign(const state_type &r, state_type &v) -> void;
 
   auto move_to_evolved(std::vector<Path>::iterator) -> void;
@@ -88,8 +88,7 @@ class Network {
                                    std::vector<Path>::iterator path_A_it,
                                    std::vector<Path>::iterator path_B_it,
                                    int32_t n, state_type &new_state) -> bool;
-  
-  
+
   // *********Old Stuff*********** //
   Map map_;
   std::vector<intersection> new_intersections_;
@@ -99,7 +98,7 @@ class Network {
       std::vector<path_point>::iterator current_pp_it,
       std::vector<Path>::iterator current_path_it) -> bool;
   auto compute_intersection_points_old() -> void;
-  
+
   // Path cutoff stuff.
   uint32_t path_2_endtime_;
   uint32_t path_2_end_partner_;

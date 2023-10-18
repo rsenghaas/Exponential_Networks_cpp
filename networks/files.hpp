@@ -7,7 +7,12 @@
 
 namespace fs = std::filesystem;
 
-const std::string wsl_path = "/home/spamdoodler/SpamOS/Documents/Masterarbeit/Exponential_Networks_cpp";
+const std::string wsl_path =
+    "/home/spamdoodler/SpamOS/Documents/Masterarbeit/Exponential_Networks_cpp";
+
+const std::string nixos_path = 
+    
+    "/home/spamdoodler/Uni/Exponential_Networks_cpp";
 
 const std::vector<std::string_view> directory_paths{
     "data/path_data", "data/map_data", "data/intersection_data", "graphics"};
@@ -16,7 +21,7 @@ auto create_directories() -> void {
   fs::path root_path = fs::path(getenv("HOME"));
   // std::string DataDirectory = fs::current_path();
   // root_path /= kDataDirectory;
-  root_path = wsl_path;
+  root_path = nixos_path;
   std::cout << fs::current_path() << std::endl;
   fs::current_path(root_path);  // (3)
   std::cout << "Current path is " << fs::current_path() << '\n';

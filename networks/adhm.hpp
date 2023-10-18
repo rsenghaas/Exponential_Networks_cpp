@@ -18,7 +18,8 @@ auto H_c3(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
 
 class ADHM {
  public:
-  explicit ADHM(double theta) : theta_(theta), path_2_endtime_(0), path_2_end_partner_(2) {
+  explicit ADHM(double theta)
+      : theta_(theta), path_2_endtime_(0), path_2_end_partner_(2) {
     curve_ = std::make_shared<SW_curve>(H_c3, "");
     start_paths();
   }
@@ -26,6 +27,7 @@ class ADHM {
   auto BPS_state(std::vector<uint32_t> pattern_vec) -> void;
   auto backwards(std::vector<uint32_t> pattern_vec) -> void;
   auto custom_BPS() -> void;
+  auto draw_fans() -> void;
 
  private:
   double theta_;

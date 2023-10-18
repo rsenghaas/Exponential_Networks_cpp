@@ -21,8 +21,15 @@
 
 class SW_curve {
  public:
-  SW_curve(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &), std::string diff_mode)
-      : x_("x"), y_("y"), H_(func(x_, y_)), mode(std::move(diff_mode)), dH_dx_(), dH_dy_(), d2H_dy2_() {
+  SW_curve(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &),
+           std::string diff_mode)
+      : x_("x"),
+        y_("y"),
+        H_(func(x_, y_)),
+        mode(std::move(diff_mode)),
+        dH_dx_(),
+        dH_dy_(),
+        d2H_dy2_() {
     compute_derivatives();
   }
 
@@ -39,9 +46,11 @@ class SW_curve {
   auto get_fiber(const cplx &x) -> std::vector<cplx>;
   auto get_branched_sheet(const cplx &x) -> cplx;
   auto match_fiber(state_type &v) -> void;
+  auto save_branch_points(std::vector<cplx> branch_points) -> void;
 
   std::mutex sw_mutex;
   std::string mode;
+
  private:
   GiNaC::symbol x_, y_;
   GiNaC::ex H_;

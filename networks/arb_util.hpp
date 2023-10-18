@@ -1,8 +1,9 @@
 #ifndef ARB_UTIL_HPP_
 #define ARB_UTIL_HPP_
 
-#include <arb.h>
 #include <acb.h>
+#include <arb.h>
+
 #include <string>
 
 #include "type_util.hpp"

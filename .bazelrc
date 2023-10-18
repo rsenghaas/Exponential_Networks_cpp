@@ -6,5 +6,5 @@
 # build --experimental_enable_bzlmod
 # run --experimental_enable_bzlmod
 
-# build --repo_env=CXX=clang15
-# run --repo_env=CXX=clang15
+build --repo_env=CXX=gcc12
+run --repo_env=CXX=gcc12

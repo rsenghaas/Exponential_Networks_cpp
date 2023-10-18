@@ -3,7 +3,7 @@
 auto arb_to_double(arb_t x) -> double {
   std::string arb_str = arb_get_str(x, 50, 0);
   size_t pos = arb_str.find(' ');
-  if(pos != std::string::npos) {
+  if (pos != std::string::npos) {
     arb_str = arb_str.substr(1, pos);
   }
   double res = std::stold(arb_str);
@@ -23,5 +23,3 @@ auto acb_to_cplx(acb_t z) -> cplx {
   arb_clear(im);
   return res;
 }
-
-

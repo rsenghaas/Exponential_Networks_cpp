@@ -35,13 +35,15 @@ auto Network::get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
 
 auto Network::start_paths() -> void {
   for (auto& r : ramification_points_) {
-    if(std::abs(r.at(kIndexX)) < 0.00001) {
+    if (std::abs(r.at(kIndexX)) < 0.00001) {
       continue;
     }
     cplx b = r.at(kIndexX);
-    spdlog::debug("Branch point at x = {}.", complex_to_string(b));
     cplx y = r.at(kIndexY);
-    
+
+    spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),
+                 complex_to_string(y));
+
     state_type start_state;
     start_state.at(kIndexX) = b;
     start_state.at(kIndexY1) = std::log(y);
@@ -115,7 +117,8 @@ auto Network::start_paths() -> void {
   }
 }
 
-auto Network::evolve_path(std::vector<Path>::iterator path_it, double cutoff) -> void {
+auto Network::evolve_path(std::vector<Path>::iterator path_it, double cutoff)
+    -> void {
   future_type future = path_it->integrate(curve_, theta_, cutoff);
   path_it->update(std::ref(future));
 }
@@ -138,8 +141,8 @@ auto Network::save_data(uint32_t id) -> void {
 }
 
 auto Network::self_intersection_handler(uint32_t id, bool truncate, int32_t n,
-                                     uint32_t intersection_number, bool shift,
-                                     bool swap) -> void {
+                                        uint32_t intersection_number,
+                                        bool shift, bool swap) -> void {
   auto path_it = get_iterator_by_id(new_paths_, id);
   std::vector<intersection> intersections = self_intersections(path_it);
   spdlog::debug("{} self intersections", intersections.size());
@@ -195,7 +198,7 @@ auto Network::self_intersections(std::vector<Path>::iterator path_it)
 }
 
 auto Network::two_path_intersections(std::vector<Path>::iterator path_A_it,
-                                  std::vector<Path>::iterator path_B_it)
+                                     std::vector<Path>::iterator path_B_it)
     -> std::vector<intersection> {
   SinglePathMap path_A_map = SinglePathMap(path_A_it);
   SinglePathMap path_B_map = SinglePathMap(path_B_it);
@@ -216,10 +219,10 @@ auto Network::two_path_intersections(std::vector<Path>::iterator path_A_it,
 }
 
 auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
-                                         bool truncate_A, bool truncate_B,
-                                         int32_t n,
-                                         uint32_t intersection_number,
-                                         bool shift, bool swap) -> void {
+                                            bool truncate_A, bool truncate_B,
+                                            int32_t n,
+                                            uint32_t intersection_number,
+                                            bool shift, bool swap) -> void {
   auto path_A_it = get_iterator_by_id(new_paths_, id_A);
   auto path_B_it = get_iterator_by_id(new_paths_, id_B);
   if (id_A > id_B) {
@@ -344,15 +347,32 @@ auto intersect_states(state_type state_A, state_type state_B,
     new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
     return true;
   }
+
+  /*if (std::abs(std::exp(state_A.at(kIndexY1)) -
+               std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
+    new_state.at(kIndexX) = state_A.at(kIndexX);
+    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY2)));
+    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY2)));
+    return true;
+  }
+
+  if (std::abs(std::exp(state_A.at(kIndexY2)) -
+               std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
+    new_state.at(kIndexX) = state_A.at(kIndexX);
+    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
+    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
+    return true;
+  }*/
+
   print_state_type(state_A);
   print_state_type(state_B);
   return false;
 }
 
 auto Network::compute_intersection_points(intersection& inter,
-                                       std::vector<Path>::iterator path_A_it,
-                                       std::vector<Path>::iterator path_B_it,
-                                       int32_t n, state_type& new_state)
+                                          std::vector<Path>::iterator path_A_it,
+                                          std::vector<Path>::iterator path_B_it,
+                                          int32_t n, state_type& new_state)
     -> bool {
   cplx z;
   // uint32_t A_id{inter.ids.at(kIndexFirstPath)};
@@ -371,15 +391,14 @@ auto Network::compute_intersection_points(intersection& inter,
     if (t_A < 0) {
       continue;
     }
-    if (t_A > path_A_it->get_length()) {
+    if (t_A >= path_A_it->get_length() - 1) {
       return false;
     }
-
     for (uint32_t t_B = B_start_time - 10; t_B < B_end_time + 10; t_B++) {
       if (t_B < 0) {
         continue;
       }
-      if (t_B > path_B_it->get_length()) {
+      if (t_B >= path_B_it->get_length() - 1) {
         return false;
       }
 
@@ -390,6 +409,9 @@ auto Network::compute_intersection_points(intersection& inter,
 
       if (line_intersection(pt_A, pt_B, z)) {
         spdlog::debug("Line intersection found at {}", complex_to_string(z));
+        if (std::abs(z) < 0.00000001) {
+          break;
+        }
         state_type state_A = path_A_it->get_point(t_A);
         state_type state_B = path_B_it->get_point(t_B);
         inter.times.at(kIndexFirstPath).at(kIndexStartTime) = t_A;
@@ -448,7 +470,7 @@ auto Network::compute_intersection_points(intersection& inter,
 // WARN: This is defined twice (also in maps.cpp).
 
 auto net_neighbour_pixel(std::array<int32_t, 2> coord_arr1,
-                     std::array<int32_t, 2> coord_arr2) -> bool {
+                         std::array<int32_t, 2> coord_arr2) -> bool {
   return !(std::max(std::abs(coord_arr1.at(kIndexCoordReal) -
                              coord_arr2.at(kIndexCoordReal)),
                     std::abs(coord_arr1.at(kIndexCoordImag) -
@@ -752,10 +774,8 @@ auto Network::compute_intersection_points_old() -> void {
 
 auto Network::print_ramification_points() -> void {
   for (auto& r : ramification_points_) {
-    std::cout << "The curve is ramified over x = " 
-              << complex_to_string(r.at(kIndexX)) 
-              << "with y = " 
-              << complex_to_string(r.at(kIndexY))
-              << std::endl;
+    std::cout << "The curve is ramified over x = "
+              << complex_to_string(r.at(kIndexX))
+              << "with y = " << complex_to_string(r.at(kIndexY)) << std::endl;
   }
 }

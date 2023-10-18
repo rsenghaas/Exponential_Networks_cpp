@@ -7,17 +7,19 @@ import pathlib
 import shutil
 import re
 
+plt.rc('font', size=4)
+# plt.rc('text', usetex=True)
+
 def transform(z):
     # return z
     return z / ( 1/4 - z)
-
-
 
 green = '#11ff1f'
 green_dark = '#0abb10'
 red = '#ff1011'
 black = '#222222'
 grey = '#aaaaaa'
+gray_dark = '#444444'
 blue = '#1515dd'
 orange = '#ffa500'
 
@@ -34,19 +36,8 @@ sing_tf = np.array([0, -1])
 branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
-if sys.argv[1] == "all":
-    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
-    if os.path.exists(output_dir + '/data'):
-        shutil.rmtree(output_dir + '/data')
-    shutil.copytree('data', output_dir + '/data')
-    shutil.copy('./sandbox.py', output_dir + '/plot_script.py');
-    intersection_file = 'data/intersection_data/test.csv'
-    intersection_data = np.array([]) #np.loadtxt(intersection_file, delimiter=",", dtype=np.complex_)
-
-
-    fig = plt.figure(dpi=800)
-    intersection_data = transform(intersection_data);
-    plt.plot(intersection_data.real, intersection_data.imag, "ro", markersize=1, markeredgewidth=0, markerfacecolor="red")
+if True:
+    fig = plt.figure(dpi=800, figsize=(5,4))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -60,11 +51,10 @@ if sys.argv[1] == "all":
         else:
             order = 2
             color = black
-        plt.plot(x_data.real, x_data.imag, linewidth=0.2, color=color,
+        plt.plot(x_data.real, x_data.imag, linewidth=0.6, color=color,
                  zorder=order)
     os.chdir(current_path)
     # plt.axis([-5.0, 5.0, -5.0, 5.0])
-    
     
     plt.plot(sing_tf.real, sing_tf.imag, color='white', marker='o', markersize=4,
                 fillstyle='full', linestyle='none', mew=0.4);
@@ -75,18 +65,35 @@ if sys.argv[1] == "all":
     plt.plot(branch_tf.real, branch_tf.imag, color=orange, marker='x',
              markersize=5,
                 fillstyle='none', linestyle='none', mew=2);
-
     
+    cut_x = np.array([- 1.0/2 - i / 5000.0 for i in range(2500)])
+    cut_y = 0.01 * np.sin(np.pi * cut_x * 50)
+    plt.plot(cut_x, cut_y, color=orange, linewidth=0.1,zorder=0)
+    log_cut_minus = np.array([-1, -10]);
+    log_cut_plus = np.array([0, 10]);
+    plt.plot(log_cut_minus, 0*log_cut_minus, 
+             color=gray_dark, 
+             linestyle='dashed',
+             dashes=(40, 25),
+             zorder=0, linewidth=0.1)
+    plt.plot(log_cut_plus, 0*log_cut_plus, 
+             color=gray_dark, 
+             linestyle='dashed',
+             dashes=(40, 25),
+             zorder=0, linewidth=0.1)
+
+    plt.text(-0.65, 0.25, r"$(+-)_0$")
+    plt.text(-0.65, -0.28, r"$(+-)_0$")
+
+
     plt.axis([-1.8, 0.1, -0.8, 0.8])
-    ax =plt.gca()
+    ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     plt.axis('off')
     fig.tight_layout()
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
-
 
 else:
     print("Rendering single path")

@@ -1,9 +1,10 @@
+#include <acb.h>
+#include <arb.h>
+
 #include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <arb.h>
-#include <acb.h>
 
 #include "adhm.hpp"
 #include "elliptic.hpp"
@@ -26,12 +27,12 @@ auto main(int argc, char* argv[]) -> int {
   spdlog::set_level(spdlog::level::debug);
   spdlog::info("Welcome to Networks!");
   // Network net(H_c3, theta);
-  std::vector<uint32_t> pattern_vec{1,1,2};
+  std::vector<uint32_t> pattern_vec{1, 1, 2};
   uint32_t k = 0;
   for (auto& i : pattern_vec) {
     k += i;
   }
-  k = 2;
+  k = 3;
   const double epsilon = 0;
   double k_pert = k - epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;

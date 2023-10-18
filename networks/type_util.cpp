@@ -37,7 +37,8 @@ auto print_state_type(const state_type &v) -> void {
 auto complex_to_string(const std::complex<double> &z) -> std::string {
   std::string sign;
   sign = (z.imag() >= 0) ? "+" : "-";
-  return std::to_string(z.real()) + sign + std::to_string(std::abs(z.imag())) + "j";
+  return std::to_string(z.real()) + sign + std::to_string(std::abs(z.imag())) +
+         "j";
 }
 
 auto get_log_sheet(state_type &v) -> int32_t {

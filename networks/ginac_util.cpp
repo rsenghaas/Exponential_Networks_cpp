@@ -36,9 +36,6 @@ auto sylvester_matrix(const GiNaC::ex &f, const GiNaC::ex &g,
 
 auto discriminant(const GiNaC::ex &f, const GiNaC::symbol &x) -> GiNaC::ex {
   GiNaC::matrix s_matrix = sylvester_matrix(f, f.diff(x), x);
-  std::stringstream disc_ss;
-  disc_ss << GiNaC::determinant(s_matrix);
-  std::cout << "Discriminant: " << disc_ss.str() << std::endl;
   return GiNaC::determinant(s_matrix);
 }
 

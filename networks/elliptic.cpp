@@ -1,15 +1,14 @@
 #include "elliptic.hpp"
 
-#include <arb.h>
 #include <acb.h>
 #include <acb_elliptic.h>
+#include <arb.h>
 
 #include "ode_integrator.hpp"
 
-auto H_c3(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex {
+auto H_c3_ell(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex {
   return -x + GiNaC::pow(y, 2) + y;
 }
-
 
 /* auto arb_to_double(arb_t x) -> double {
   std::string arb_str = arb_get_str(x, 50, 0);
@@ -45,8 +44,7 @@ auto Elliptic::add_new_path(state_type start_point) -> void {
   next_id_++;
 }
 
-auto Elliptic::get_iterator_by_id(uint32_t id)
-    -> std::vector<Path>::iterator {
+auto Elliptic::get_iterator_by_id(uint32_t id) -> std::vector<Path>::iterator {
   auto ret_it = paths_.begin();
   while (ret_it != paths_.end()) {
     if (ret_it->path_id_ == id) {
@@ -63,22 +61,22 @@ auto Elliptic::evolve_path(uint32_t path_id, double cutoff) -> void {
 }
 
 auto Elliptic::custom_BPS() -> void {
-  for(uint32_t i = 0; i < 10; i++) {
-    cplx x = -0.27 + 0.01*J;
+  for (uint32_t i = 0; i < 10; i++) {
+    cplx x = -0.27 + 0.01 * J;
     spdlog::debug("Computing roots...");
     auto roots = curve_->get_fiber(x);
     cplx y1, y2;
-    acb_t r, inv_p_y1, inv_p_y2, tau; 
+    acb_t r, inv_p_y1, inv_p_y2, tau;
     acb_init(r);
     acb_init(tau);
     acb_init(inv_p_y1);
     acb_init(inv_p_y2);
     acb_onei(tau);
 
-    acb_set_d_d(r,  roots.at(0).real(), x.imag());
-    acb_elliptic_inv_p(inv_p_y1, r,tau, 50);
+    acb_set_d_d(r, roots.at(0).real(), x.imag());
+    acb_elliptic_inv_p(inv_p_y1, r, tau, 50);
 
-    acb_set_d_d(r,  roots.at(1).real(), x.imag());
+    acb_set_d_d(r, roots.at(1).real(), x.imag());
     acb_elliptic_inv_p(inv_p_y2, r, tau, 50);
 
     y1 = acb_to_cplx(inv_p_y1);
@@ -98,8 +96,8 @@ auto Elliptic::custom_BPS() -> void {
     print_state_type(v.back());
     curve_->elliptic_differential(v.back(), dv);
     print_state_type(dv);
-    for (uint32_t i = 0; i < 200*kInitialSteps; i++) {
-      ODE_elliptic_euler_step(curve_, v, masses, 40*kInitialStepSize, theta_);
+    for (uint32_t i = 0; i < 200 * kInitialSteps; i++) {
+      ODE_elliptic_euler_step(curve_, v, masses, 40 * kInitialStepSize, theta_);
     }
     Path path(v, masses, next_id_);
     paths_.push_back(std::move(path));
@@ -112,4 +110,3 @@ auto Elliptic::save_data(uint32_t id) -> void {
   auto path_it = get_iterator_by_id(id);
   path_it->save_data();
 }
-
