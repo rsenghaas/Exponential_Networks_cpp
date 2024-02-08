@@ -12,7 +12,7 @@
 #include "spdlog/spdlog.h"
 // #include "nets.hpp"
 
-constexpr double kDefaultTheta = -0.01;
+constexpr double kDefaultTheta = -0.01003;
 
 auto main(int argc, char* argv[]) -> int {
   create_directories();
@@ -32,9 +32,9 @@ auto main(int argc, char* argv[]) -> int {
   for (auto& i : pattern_vec) {
     k += i;
   }
-  k = 3;
-  const double epsilon = 0;
-  double k_pert = k - epsilon;
+  k = 2;
+  const double epsilon = -0.4;
+  double k_pert = k + epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;
 
   double adhm_theta = std::arg(Z_total);

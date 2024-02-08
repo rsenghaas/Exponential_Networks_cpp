@@ -35,7 +35,7 @@ branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
 if True:
-    fig = plt.figure(dpi=800)
+    fig = plt.figure(dpi=800, figsize=(5,3))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -49,7 +49,7 @@ if True:
         else:
             order = 2
             color = black
-        plt.plot(x_data.real, x_data.imag, linewidth=0.8, color=color,
+        plt.plot(x_data.real, x_data.imag, linewidth=0.6, color=color,
                  zorder=order)
     os.chdir(current_path)
     # plt.axis([-5.0, 5.0, -5.0, 5.0])
@@ -66,7 +66,7 @@ if True:
                 fillstyle='none', linestyle='none', mew=2);
 
     
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-1.8, 0.1, -0.7, 0.5])
     ax =plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)

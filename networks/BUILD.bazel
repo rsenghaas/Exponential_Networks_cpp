@@ -88,6 +88,20 @@ cc_library(
 )
 
 cc_library(
+    name = "local",
+    srcs = ["local.cpp"],
+    hdrs = ["local.hpp"],
+    copts = CXX_OPTS,
+    deps = [
+        ":util",
+        ":path",
+        ":maps",
+        ":sw_curve",
+        ":nets",
+    ]
+)
+
+cc_library(
     name = "adhm",
     srcs = [
         "adhm.cpp",
@@ -289,6 +303,25 @@ cc_binary(
     ],
     deps = [
         ":coni",
+        ":util",
+    ]
+)
+
+cc_binary(
+    name = "local_networks",
+    srcs = [
+        "local_main.cpp",
+    ],
+    copts = CXX_OPTS,
+    linkopts = [
+        "-lginac",
+        "-lcln",
+        "-lflint",
+        "-larb",
+        "-v",
+    ],
+    deps = [
+        ":local",
         ":util",
     ]
 )

@@ -38,7 +38,7 @@ branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
 if True:
-    fig = plt.figure(dpi=800, figsize=(5,4))
+    fig = plt.figure(dpi=800, figsize=(5,2.5))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -83,7 +83,7 @@ if True:
 
     plt.text(-0.65, 0.25, r"$(+-)_0$")
     plt.text(-0.65, -0.35, r"$(-+)_0$")
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-1.8, 0.1, -0.55, 0.45])
     ax =plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)

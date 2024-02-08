@@ -45,7 +45,7 @@ sing_tf = np.array([0, -1])
 branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
-fig = plt.figure(dpi=800, figsize=(5,4))
+fig = plt.figure(dpi=800, figsize=(5,2.5))
 current_path = pathlib.Path(__file__).parent.resolve()
 os.chdir(data_dir)
 if True:
@@ -78,10 +78,11 @@ if True:
 
     cut_x = np.array([- 1.0/2 - i / 5000.0 for i in range(2500)])
     cut_y = 0.01 * np.sin(np.pi * cut_x * 50)
-    plt.plot(cut_x, cut_y, color=orange, linewidth=0.1,zorder=0)
+    
+    # plt.plot(cut_x, cut_y, color=orange, linewidth=0.1,zorder=0)
     log_cut_minus = np.array([-1, -10]);
     log_cut_plus = np.array([0, 10]);
-    plt.plot(log_cut_minus, 0*log_cut_minus, 
+    '''plt.plot(log_cut_minus, 0*log_cut_minus, 
              color=gray_dark, 
              linestyle='dashed',
              dashes=(40, 25),
@@ -91,11 +92,20 @@ if True:
              linestyle='dashed',
              dashes=(40, 25),
              zorder=0, linewidth=0.1)
+    ''' 
+    # plt.text(-0.65, 0.25, r"$(+-)_0$")
+    # plt.text(-0.7, -0.2, r"$(+-)_0$")
+    
+    plt.text(-0.65, 0.25, "2")
+    plt.text(-0.65, -0.27, "1") 
+    plt.plot([-0.865, -0.8], [0, 0.15], color=black, linewidth=0.2)
+    plt.plot([-0.855, -0.77], [0, 0.15], color=black, linewidth=0.2)
+    plt.text(-0.795, 0.14, "1")
+    plt.text(-0.765, 0.14, "1")
+    plt.text(-1.37, -0.04, "1")
+    plt.text(-1.45, -0.04, "1")
 
-    plt.text(-0.65, 0.25, r"$(+-)_0$")
-    plt.text(-0.7, -0.2, r"$(+-)_0$")
-
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-1.8, 0.1, -0.55, 0.45])
     ax =plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
@@ -103,6 +113,6 @@ if True:
     fig.tight_layout()
     if output_dir != '.':
         plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
+    plt.savefig(output_dir + '/network_with_mult.png', dpi=fig.dpi)
+    plt.savefig(output_dir + '/network_with_mult.pdf', dpi=fig.dpi)
 

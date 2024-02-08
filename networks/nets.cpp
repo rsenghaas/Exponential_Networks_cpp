@@ -9,16 +9,20 @@
 // * Log has range (-i*pi,i*pi]
 
 auto determine_sign(SW_curve& curve, const state_type& r, state_type& v)
-    -> void {
+    -> bool {
   state_type dv;
   curve.sw_differential(v, dv);
   cplx dx = v.at(kIndexX) - r.at(kIndexX);
   cplx next_dx = dv.at(kIndexX);
+  // spdlog::debug(std::abs(next_dx.real() * dx.real() + next_dx.imag() * dx.imag()));
   if (next_dx.real() * dx.real() + next_dx.imag() * dx.imag() < 0) {
     cplx temp = v.at(kIndexY1);
     v.at(kIndexY1) = v.at(kIndexY2);
     v.at(kIndexY2) = temp;
+    spdlog::debug("Flip");
+    return false;
   }
+  return true;
 }
 
 auto Network::get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
@@ -70,16 +74,19 @@ auto Network::start_paths() -> void {
                                  std::exp(J * theta_) * kInitialStepSize,
                              2.0),
                     1.0 / 3) *
-           std::pow(kZeta3,
-                    k);  // ! This is only valid for exponential networks.
+           std::pow(kZeta3, k);  // ! This is only valid for exponential networks.
+                                 //
+      spdlog::debug(complex_to_string(dx));
       dy = 3.0 / 4.0 * y * b * std::exp(J * theta_) * kInitialStepSize / dx;
-
+    
       next_state.at(kIndexX) = b + dx;
       next_state.at(kIndexY1) = start_state.at(kIndexY1) + dy / y;
       next_state.at(kIndexY2) = start_state.at(kIndexY2) - dy / y;
-      curve_->match_fiber(v.back());
-
-      determine_sign(*curve_, start_state, next_state);
+      if(!determine_sign(*curve_, start_state, next_state)) {
+        // next_state.at(kIndexY1) = start_state.at(kIndexY1) - dy / y;
+        // next_state.at(kIndexY2) = start_state.at(kIndexY2) + dy / y;
+      }
+      curve_->match_fiber(next_state);
       v.push_back(next_state);
 
       spdlog::debug(

@@ -46,7 +46,7 @@ branch = np.array([-0.25])
 branch_tf = transform(branch)
 
 if sys.argv[1] == "all":
-    fig = plt.figure(dpi=300)
+    fig = plt.figure(dpi=800, figsize=(5,3))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):

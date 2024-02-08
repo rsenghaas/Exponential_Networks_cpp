@@ -75,14 +75,16 @@
             
             packages = [
               pkgs.arb 
+              pkgs.fmt
+              pkgs.ripgrep
               pkgs.flint
               pkgs.ginac
               pkgs.gmp
               pkgs.cln
               pkgs.spdlog
               pkgs.mpfr
-              pkgs.gcc12
-              pkgs.gcc12Stdenv
+              pkgs.gcc13
+              pkgs.gcc13Stdenv
               # pkgs.bazelisk
               pkgs.bazel
               pkgs.boost
@@ -90,7 +92,7 @@
             ]; 
 
             enterShell = ''
-              alias ls='ls --color=auto
+              alias ls='ls --color=auto'
               export PYTHONPATH="${pythonEnv}/bin/python"
             '';
           }];
