@@ -14,7 +14,11 @@ print(Q_2)
 print(cmath.phase(n*Q_0 + Q_2))
 print(abs((n*Q_0 + Q_2) * D0_factor))
 print(cmath.phase(Q_04-Q_0))
-print(abs(Q_04 - Q_0))
+print(abs(Q_04 + 2*Q_0))
 # print(cmath.phase(6.3 * cmath.exp(0.0084*1j) + Q_0))
 
-print(cmath.phase(Q_0 + Q_4_loc))
+# print(cmath.phase(Q_0 + Q_4_loc))
+
+x = 31.37 + 10.108201 + 6.896873 + 41.831989  + 228.535942
+print(x)
+

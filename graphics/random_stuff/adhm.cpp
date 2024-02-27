@@ -122,6 +122,19 @@ auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
   return ret_it;
 }
 
+
+auto ADHM::get_puncture_point(uint32_t truncate) -> state_type {
+    auto path_it = get_iterator_by_id(new_paths_, 1);
+    evolve_path(path_it, 4*kD4Cutoff);
+    path_it->truncate(0, truncate);
+    return path_it->get_endpoint();
+}
+
+auto ADHM::get_puncture_mass() -> double {
+    auto path_it = get_iterator_by_id(new_paths_, 1);
+    return path_it->get_endmass();
+}
+
 const state_type cutoffPoint = {
   -1.8897512312374315e-09 - 1.8882623082801205e-10 * J,
   -20.08185327082071 + 3.2411832963911094 * J,
@@ -382,34 +395,101 @@ auto ADHM::draw_fans() -> void {
   save_data(8);
 }
 
-auto ADHM::custom_BPS() -> void {
-  auto path_it = get_iterator_by_id(new_paths_, 1);
-  evolve_path(path_it, kD4Cutoff);
-  path_it->truncate(0, 1739);
+auto ADHM::custom_BPS() -> void { 
+auto path_it = get_iterator_by_id(new_paths_, 0);
+  overwrite_path(path_it, cutoffPoint);
+  evolve_path(path_it, 4*kD4Cutoff);
+  // path_it->truncate(0, 1120);
+  save_data(0);
+
+  path_it = get_iterator_by_id(new_paths_, 1);
+  evolve_path(path_it, 4*kCutoff);
   save_data(1);
 
-  auto endpoint = path_it->get_endpoint();
-  endpoint.at(kIndexY2) -= 2 * pi * J;
-  add_new_path(endpoint);
-  path_it = get_iterator_by_id(new_paths_, 3);
+  path_it = get_iterator_by_id(new_paths_, 2);
   evolve_path(path_it, kCutoff);
-  save_data(3);
+  path_it->truncate(0, 1500);
+  save_data(2);
 
-  endpoint.at(kIndexY2) = endpoint.at(kIndexY1);
-  endpoint.at(kIndexY1) -= 2 * pi * J;
+
+  self_intersection_handler(1, true, -1, 0, true, true );
+  save_data(1);
+  path_it = get_iterator_by_id(new_paths_, 3);
+  auto endpoint= path_it->get_endpoint();
+  evolve_path(path_it, kCutoff );
+  
+
+  two_path_intersection_handler(2, 3, false, true, 0, 0, true, false );
+  save_data(3);
+  endpoint.at(kIndexY2) = endpoint.at(kIndexY1) + 2 * pi * J;
   add_new_path(endpoint);
+  path_it = get_iterator_by_id(new_paths_, 5);
+  evolve_path(path_it, kCutoff);
+  save_data(5);
+  two_path_intersection_handler(2,5,true,true, 0,0, true,false);
+
+  save_data(2);
+  save_data(5);
+
+  path_it = get_iterator_by_id(new_paths_, 6);
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(1,6, false, true, -1,0, false, false);
+  save_data(6);
+
+  path_it = get_iterator_by_id(new_paths_, 7);
+  endpoint = path_it->get_endpoint();
+  print_state_type(endpoint);
+
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(2, 7, false, true, 0, 0, true, false);
+
+  save_data(7);
+  path_it = get_iterator_by_id(new_paths_, 8);
+  evolve_path(path_it, kCutoff);
+
+
+  save_data(8); 
+
+  two_path_intersection_handler(0, 2, true, false, 3, 0, true, true);
+  save_data(0);
+  path_it = get_iterator_by_id(new_paths_, 9);
+  endpoint = path_it->get_endpoint();
+  evolve_path(path_it, kCutoff);
+  save_data(9);
+  endpoint.at(kIndexY2) = endpoint.at(kIndexY1) - 2 * pi * J;
+  add_new_path(endpoint);
+  path_it = get_iterator_by_id(new_paths_, 10);
+  evolve_path(path_it, kCutoff);
+  save_data(10);
+  two_path_intersection_handler(1, 10, false, true, 1, 0, true, false);
+  save_data(10);
+  two_path_intersection_handler(1, 9, false, true, 1, 0, true, false);
+  save_data(9);
+  path_it = get_iterator_by_id(new_paths_, 11);
+  evolve_path(path_it, kCutoff);
+  save_data(11);
   path_it = get_iterator_by_id(new_paths_, 4);
   evolve_path(path_it, kCutoff);
   save_data(4);
-  two_path_intersection_handler(4,3, true, true, 0, 1, false, false);
-  save_data(3);
-  save_data(4);
-  path_it = get_iterator_by_id(new_paths_, 5);
-  evolve_path(path_it, kCutoff);
-  // path_it->truncate(0, 30);
-  save_data(5);
 
-  /*  auto path_it = get_iterator_by_id(new_paths_, 1);
+  two_path_intersection_handler(2, 11, false, true, 1, 0, false, false);
+  save_data(11);
+  path_it = get_iterator_by_id(new_paths_, 12);
+  evolve_path(path_it, kCutoff);
+  save_data(12);
+
+  path_it = get_iterator_by_id(new_paths_, 13);
+  evolve_path(path_it, kCutoff);
+  save_data(13);
+
+  two_path_intersection_handler(1, 13, false, true, 1, 0, true, false);
+  save_data(13);
+  path_it = get_iterator_by_id(new_paths_, 14);
+  evolve_path(path_it, kCutoff);
+  save_data(14);
+
+  /* auto path_it = get_iterator_by_id(new_paths_, 1);
   overwrite_path(path_it, cutoffPoint);
   evolve_path(path_it, kCutoff);
   save_data(1);
@@ -824,7 +904,6 @@ auto ADHM::self_intersection_handler(uint32_t id, bool truncate, int32_t n,
   int32_t state_B_k = get_log_sheet(pt_B);
   spdlog::debug("Path_B has k {}", state_B_k);
   if (compute_intersection_points(*inter_it, path_it, path_it, n, next_state)) {
-    print_state_type(next_state);
     if (truncate) {
       path_it->truncate(0,
                         inter_it->times.at(kIndexSecondPath).at(kIndexEndTime));
@@ -847,8 +926,10 @@ auto ADHM::self_intersection_handler(uint32_t id, bool truncate, int32_t n,
       curve_->match_fiber(shift_state);
       shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) +
                                  2 * pi * J * static_cast<double>(n);
+      print_state_type(shift_state);
       add_new_path(shift_state);
     } else {
+      print_state_type(next_state);
       add_new_path(next_state);
     }
   }
@@ -867,6 +948,9 @@ auto ADHM::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
   }
   std::vector<intersection> intersections =
       two_path_intersections(path_A_it, path_B_it);
+  /* for(auto& inter : intersections) {
+    print_intersection(inter);
+  } */
   spdlog::debug("{} intersections between {} and {}.", intersections.size(),
                 id_A, id_B);
   auto inter_it = intersections.begin();
@@ -1061,17 +1145,6 @@ auto ADHM::two_path_intersections(std::vector<Path>::iterator path_A_it,
   SinglePathMap path_A_map = SinglePathMap(path_A_it);
   SinglePathMap path_B_map = SinglePathMap(path_B_it);
   Map two_path_map;
-  if (path_B_it->path_id_ == 3) {
-    for (auto& pp : path_B_map.pp_vec) {
-      if (pp.t.at(kIndexStartTime) < 35) {
-        continue;
-      }
-      // print_path_point(pp);
-      if (pp.t.at(kIndexStartTime) > 38) {
-        break;
-      }
-    }
-  }
   two_path_map.add_path(path_A_map.pp_vec);
   return two_path_map.get_intersections(path_B_map.pp_vec);
 }

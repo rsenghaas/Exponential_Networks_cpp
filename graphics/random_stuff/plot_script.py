@@ -5,7 +5,6 @@ import shutil
 import pathlib
 import sys
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -21,11 +20,20 @@ red = '#ff1011'
 black = '#222222'
 grey = '#aaaaaa'
 light_grey = '#eeeeee'
+gray_dark = '#444444'
+medium_gray = '#888888'
 blue = '#1515dd'
 orange = '#ffa500'
 pink = '#ee0aaa'
+pastel_blue = '#c1c1f4'
+pastel_red = '#f4c1c1'
+pastel_green = '#c8ffcc'
+lime = '#caff00'
+purple = '#9a80f4'
 
-path_colors = {4: green, 7: green, 10: green}
+
+path_colors = {0: grey, 3: red, 4: green, 7: green, 8: grey, 9: red,
+               10: green, 11: grey, 12:grey, 13: green, 14: grey}
 # path_colors = {0: light_grey, 4: green, 7: red, 8: green}
 
 partition = 'random_stuff'
@@ -47,7 +55,7 @@ branch = np.array([-0.25])
 branch_tf = transform(branch)
 
 if sys.argv[1] == "all":
-    fig = plt.figure(dpi=1000)
+    fig = plt.figure(dpi=800, figsize=(5,4))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -59,23 +67,27 @@ if sys.argv[1] == "all":
         if i in path_colors:
             order = 1
             color = path_colors[i]
+            if path_colors[i] == green:
+                order = 0
+            if path_colors[i] == grey:
+                order = 2
         else:
-            order = 2
+            order = 3
             color = black
-        plt.plot(x_data.real, x_data.imag, linewidth=0.4, color=color,
+        plt.plot(x_data.real, x_data.imag, linewidth=0.6, color=color,
                  zorder=order)
     os.chdir(current_path)
     # plt.axis([-5.0, 5.0, -5.0, 5.0])
 
     plt.plot(sing_tf.real, sing_tf.imag, color='white', marker='o', markersize=4,
-             fillstyle='full', linestyle='none', mew=0.4)
+             fillstyle='full', linestyle='none', mew=0.4, zorder=3)
 
     plt.plot(sing_tf.real, sing_tf.imag, color=blue, marker='o', markersize=4,
-             fillstyle='none', linestyle='none', mew=0.4)
+             fillstyle='none', linestyle='none', mew=0.4, zorder=3)
 
     plt.plot(branch_tf.real, branch_tf.imag, color=orange, marker='x',
              markersize=5,
-             fillstyle='none', linestyle='none', mew=2)
+             fillstyle='none', linestyle='none', mew=2, zorder=3)
 
     plt.axis([-1.8, 0.1, -0.8, 0.8])
     ax = plt.gca()

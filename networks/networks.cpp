@@ -32,8 +32,8 @@ auto main(int argc, char* argv[]) -> int {
   for (auto& i : pattern_vec) {
     k += i;
   }
-  k = 2;
-  const double epsilon = -0.4;
+  k = 4;
+  const double epsilon = 0;
   double k_pert = k + epsilon;
   cplx Z_total = kD4Cutoff * std::exp(J * kD4angle) + k_pert * kD0Mass;
 
@@ -42,6 +42,13 @@ auto main(int argc, char* argv[]) -> int {
             << std::endl;
   // adhm_theta *= -1;
   // adhm_theta += 0.0008;
+  // double D0_D4_theta = -0.2;
+  // ADHM cutoff(D0_D4_theta);
+  // auto cutoff_point = cutoff.get_puncture_point(2500);
+  // double D0_D4_mass = cutoff.get_puncture_mass();
+  // spdlog::debug(D0_D4_mass);
+  // Z_total = D0_D4_mass * std::exp(J * D0_D4_theta) + kD0Mass;
+  // adhm_theta = std::arg(Z_total);
   ADHM adhm(adhm_theta);
   // adhm.backwards(pattern_vec);
   // adhm.BPS_state(pattern_vec);

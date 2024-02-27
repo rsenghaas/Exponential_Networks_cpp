@@ -23,7 +23,8 @@ class ADHM {
     curve_ = std::make_shared<SW_curve>(H_c3, "");
     start_paths();
   }
-
+  auto get_puncture_point(uint32_t truncate) -> state_type;
+  auto get_puncture_mass() -> double;
   auto BPS_state(std::vector<uint32_t> pattern_vec) -> void;
   auto backwards(std::vector<uint32_t> pattern_vec) -> void;
   auto custom_BPS() -> void;
