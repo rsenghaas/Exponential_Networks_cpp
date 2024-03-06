@@ -27,6 +27,8 @@ pastel_green = '#c8ffcc'
 lime = '#caff00'
 purple = '#9a80f4'
 
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
 plt.rc('font', size=5)
 label_offset = 0.03
 stretch = 0.55
@@ -51,38 +53,38 @@ if True:
               0.25* (x[1] - x[0]) * slope * stretch, 
               color=black, linewidth = linewidth, zorder=2, head_width = 0.05)
     #plot_edge(A, [0,1], color=black, zorder=2, factor=0.25)
-  plt.text(2.9, x[1] * stretch- label_offset, "$(+ -)_{0}$")
-  plt.text(2.9, -x[1] * stretch - label_offset, "$(-+)_{-1}$")
+  plt.text(2.9, x[1] * stretch- label_offset, "$(ij)_{n_1}$")
+  plt.text(2.9, -x[1] * stretch - label_offset, "$(ji)_{n_2}$")
 
 
 
   x = np.array([0, 2.4])
-  plt.plot(x, 0*x, linewidth=1, color=green, zorder=1)
-  plt.text(2.9, -label_offset , "$(\pm \pm)_{-w}$")
+  plt.plot(x, 0*x, linewidth=1, color=black, zorder=1)
+  plt.text(2.9, -label_offset , "$(ii/jj)_{w(n_1 + n_2)}$")
 
   for g in gens:
       slope = 1.7 / (g + 1) * stretch
-      plt.plot(x, slope*x, linewidth=1, color=red, zorder=1) 
-      label = f"$(+-)_{{ -{g} }}$"
+      plt.plot(x, slope*x, linewidth=1, color=black, zorder=1) 
+      label = f"$(ij)_{{ {g} (n_1 + n_2) + n_1}}$"
       if g == 1:
-        label = f"$(+-)_{{ -1 }}$"
+        label = f"$(ij)_{{ (n_1 + n_2) + n_1}}$"
       if g == gens[-1]:
-          label =r"$(+-)_{-w}$"
+          label =r"$(ij)_{w(n_1 + n_2) + n_1}$"
       plt.text(2.9, 2.4* slope-label_offset, label)
 
   for g in gens:
       slope = -1.7 / (g + 1) * stretch
-      plt.plot(x, slope*x, linewidth=1, color=blue, zorder=1) 
-      label = f"$(-+)_{{ -{g + 1} }}$"
+      plt.plot(x, slope*x, linewidth=1, color=black, zorder=1) 
+      label = f"$(ji)_{{ {g} (n_1 + n_2) + n_2}}$"
       if g == 1:
-        label = f"$(-+)_{{ -2 }}$"
+        label = f"$(ji)_{{ (n_1 + n_2) + n_2 }}$"
       if g == gens[-1]:
-          label =r"$(-+)_{-(w + 1)}$"
+          label =r"$(ji)_{w(n_1 + n_2) + n_2}$"
       plt.text(2.9, 2.4* slope - label_offset, label)
 
 
-  plt.text(-1.9, -1.1-label_offset, r"$(+-)_{0}$")
-  plt.text(-1.9, 1.1-label_offset, r"$(-+)_{-1}$")
+  plt.text(-1.9, -1.1-label_offset, r"$(ij)_{n_1}$")
+  plt.text(-1.9, 1.1-label_offset, r"$(ji)_{n_2}$")
   plt.axis(ax_size)
   plt.text(2.3,1.7/gens[-1] *0.55, "$\dots$")
   plt.text(2.3, - 1.7/gens[-1]*0.55, "$\dots$")
@@ -94,6 +96,6 @@ if True:
   ax.get_yaxis().set_visible(False)
   plt.axis('off')
   fig.tight_layout()
-  plt.savefig('graphics/colored_cone.png', dpi=fig.dpi)
-  plt.savefig('graphics/colored_cone.pdf', dpi=fig.dpi)
+  plt.savefig('graphics/cone.png', dpi=fig.dpi)
+  plt.savefig('graphics/cone.pdf', dpi=fig.dpi)
 

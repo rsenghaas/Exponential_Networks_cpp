@@ -7,7 +7,9 @@ import pathlib
 import shutil
 import re
 
-plt.rc('font', size=4)
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
+plt.rc('font', size=5)
 # plt.rc('text', usetex=True)
 
 

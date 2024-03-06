@@ -7,8 +7,9 @@ import pathlib
 import shutil
 import re
 
-plt.rc('font', size=4)
-# plt.rc('text', usetex=True)
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
+plt.rc('font', size=5)
 
 def transform(z):
     # return z
@@ -98,7 +99,8 @@ if True:
     plt.plot([-1.37, -1.53], [-0.04, 0.25], color=black, linewidth=0.2)
     plt.text(-1.515, 0.24, "1")
     plt.text(-1.545, 0.24, "1")
-    plt.text(-1.5, -0.04, "1")    
+    plt.text(-1.5, -0.04, "1") 
+    plt.text(-1.35, 0.073, "2")
     # plt.text(-0.65, 0.25, r"$(+-)_0$")
     # plt.text(-0.65, -0.28, r"$(+-)_0$")
 

@@ -7,7 +7,9 @@ import pathlib
 import shutil
 import re
 
-plt.rc('font', size=4)
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
+plt.rc('font', size=5)
 # plt.rc('text', usetex=True)
 
 def transform(z):
@@ -24,8 +26,9 @@ grey = '#aaaaaa'
 gray_dark = '#444444'
 blue = '#1515dd'
 orange = '#ffa500'
+pastel_green = '#c8ffcc'
 
-path_colors = {3: green, 6: grey, 7: red}
+path_colors = {3: green, 6: pastel_green, 7: red}
 
 partition = '3_1_partition'
 #TODO: Need to change directories, so we can actually run that from the subdirectories.
@@ -107,6 +110,9 @@ if True:
     plt.text(-1.545, 0.24, "1")
     plt.text(-1.52, -0.04, "1")   
     plt.text(-1.335, -0.32, "1")   
+    plt.plot([-1.348, -1.3], [0.052, 0.07], color=black, linewidth=0.2)
+    plt.text(-1.3, 0.06, "2")
+
 
     plt.axis([-1.8, 0.1, -0.7, 0.5])
     ax =plt.gca()

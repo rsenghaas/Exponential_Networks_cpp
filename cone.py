@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
 
 green = '#11ff1f'
 green_dark = '#0abb10'

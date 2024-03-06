@@ -19,6 +19,8 @@ lime = '#caff00'
 purple = '#9a80f4'
 plt.rc('font', size=5)
 plt.rcParams["pdf.use14corefonts"] = True
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
 output_dir = "graphics"
 fig = plt.figure(dpi=800, figsize = (5,2))
 
@@ -69,16 +71,16 @@ plot_edge(B, [6,8])
 plot_edge(B, [7,8])
 plot_edge(B, [8,9])
 
-plt.text(-2.1, -0.85, r"$2(ij)_{n_1}$")
+plt.text(-2.1, -0.85, r"$\mathit{2(ij)_{n_1}}$")
 plt.text(-0.6, -0.85, r"$3(ji)_{n_2}$")
 plt.text(-1.35, 0.8, r"$(ji)_{2(n_1 + n_2) + n_2}$")
 plt.rc('font', size=10)
-plt.text(-0.2, 0, r"$= \lim$")
+plt.text(-0.2, 0, r"$= \quad \lim$")
 plt.rc('font', size=5)
 plt.text(0.4, -0.85, r"$(ij)_{n_1}$")
 plt.text(0.4, -0.35, r"$(ij)_{n_1}$")
-plt.text(0.93, -0.14, r"$(ii/jj)_{n_1 + n_2}$")
-plt.text(0.87, 0.36, r"$(ii/jj)_{2(n_1 + n_2)}$")
+plt.text(0.9, -0.12, r"$(ii/jj)_{n_1 + n_2}$")
+plt.text(0.85, 0.38, r"$(ii/jj)_{2(n_1 + n_2)}$")
 plt.text(1.3, 0.125, r"$(ji)_{(n_1 + n_2) + n_2}$")
 plt.text(1.15, 0.8, r"$(ji)_{2(n_1 + n_2) + n_2}$")
 plt.text(1.9, -0.6, r"$(ji)_{n_2}$")
