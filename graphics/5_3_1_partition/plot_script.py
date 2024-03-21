@@ -5,7 +5,6 @@ import shutil
 import pathlib
 import sys
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -28,12 +27,13 @@ orange = '#ffa500'
 pink = '#ee0aaa'
 pastel_blue = '#c1c1f4'
 pastel_red = '#f4c1c1'
-pastel_green = '#c8ffcc'
+pastel_green = '#c8ddcc'
 lime = '#caff00'
 purple = '#9a80f4'
 
 
-path_colors = {3: green, 6: pastel_blue, 7: green, 10: pastel_green, 11: red, 13:red}
+path_colors = {0: grey, 3: green, 6: pastel_green, 9: pastel_green,
+               10: red, 12:pastel_green, 13: red, 15: green}
 # path_colors = {0: light_grey, 4: green, 7: red, 8: green}
 
 partition = '5_3_1_partition'
@@ -61,7 +61,7 @@ if True:
     for file in glob.glob("*.csv"):
         i = int(re.search('path_data_(.+?).csv', file).group(1))
         print(i)
-        if i == 0:
+        if i in [0]:
             continue
         data = np.loadtxt(file, delimiter=",", dtype=np.complex_)
         data = transform(data)
@@ -69,8 +69,12 @@ if True:
         if i in path_colors:
             order = 1
             color = path_colors[i]
+            if path_colors[i] == green:
+                order = 0
+            if path_colors[i] == grey:
+                order = 2
         else:
-            order = 2
+            order = 3
             color = black
         plt.plot(x_data.real, x_data.imag, linewidth=0.6, color=color,
                  zorder=order)
@@ -78,16 +82,16 @@ if True:
     # plt.axis([-5.0, 5.0, -5.0, 5.0])
 
     plt.plot(sing_tf.real, sing_tf.imag, color='white', marker='o', markersize=4,
-             fillstyle='full', linestyle='none', mew=0.4)
+             fillstyle='full', linestyle='none', mew=0.4, zorder=3)
 
     plt.plot(sing_tf.real, sing_tf.imag, color=blue, marker='o', markersize=4,
-             fillstyle='none', linestyle='none', mew=0.4)
+             fillstyle='none', linestyle='none', mew=0.4, zorder=3)
 
     plt.plot(branch_tf.real, branch_tf.imag, color=orange, marker='x',
              markersize=5,
-             fillstyle='none', linestyle='none', mew=2)
+             fillstyle='none', linestyle='none', mew=2, zorder=3)
 
-    plt.axis([-1.8, 0.1, -0.73, 0.47])
+    plt.axis([-1.8, 0.1, -0.7, 0.5])
     ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
@@ -95,4 +99,3 @@ if True:
     fig.tight_layout()
     plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
-

@@ -37,25 +37,13 @@ path_colors = {0: grey, 3: blue, 5:green, 7: green, 8: grey, 9: red,
 # path_colors = {0: light_grey, 4: green, 7: red, 8: green}
 
 partition = '2_partition_P1'
-# TODO: Need to change directories, so we can actually run that from the subdirectories.
-if os.path.exists('./plot_script.py'):
-    output_dir = '.'
-else:
-    output_dir = 'graphics/' + partition
-    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
-    if os.path.exists(output_dir + '/data'):
-        shutil.rmtree(output_dir + '/data')
-    shutil.copytree('data', output_dir + '/data')
-    shutil.copy('networks/adhm.cpp', output_dir + '/adhm.cpp')
-    shutil.copy('./sandbox.py', output_dir + '/plot_script.py')
-
 
 sing_tf = np.array([0, -1])
 branch = np.array([-0.25])
 branch_tf = transform(branch)
 
-if sys.argv[1] == "all":
-    fig = plt.figure(dpi=800, figsize=(5,4))
+if True:
+    fig = plt.figure(dpi=800, figsize=(5,2.5))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -89,31 +77,11 @@ if sys.argv[1] == "all":
              markersize=5,
              fillstyle='none', linestyle='none', mew=2, zorder=3)
 
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-1.8, 0.1, -0.55, 0.45])
     ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     plt.axis('off')
     fig.tight_layout()
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
-    plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
-
-
-else:
-    print("Rendering single path")
-    s1 = int(sys.argv[1])
-    fig = plt.figure(dpi=1000)
-    # for i in range(6):
-    filename = f'data/path_data/path_data_{s1}.csv'
-    data = np.loadtxt(filename, delimiter=",", dtype=np.complex_)
-    data = transform(data)
-    x_data = data[:, 0]
-    plt.plot(x_data.real, x_data.imag)
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
-    ax = plt.gca()
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-    plt.axis('off')
-    fig.tight_layout()
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
+    plt.savefig('network.png', dpi=fig.dpi)
+    plt.savefig('network.pdf', dpi=fig.dpi)

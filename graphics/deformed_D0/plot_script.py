@@ -7,6 +7,9 @@ import pathlib
 import shutil
 import re
 
+plt.rc('font', size=5)
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
 def transform(z):
     # return z
     return z / ( 1/4 - z)

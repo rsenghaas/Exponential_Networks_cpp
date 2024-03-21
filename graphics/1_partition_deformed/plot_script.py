@@ -10,7 +10,9 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
-plt.rc('font', size=6)
+plt.rc('font', size=5)
+plt.rcParams["font.family"] = 'serif'
+plt.rcParams["mathtext.fontset"] = 'cm'
 def transform(z):
     return z / (1/4 - z)
 

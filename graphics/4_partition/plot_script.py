@@ -37,7 +37,7 @@ branch = np.array([-0.25])
 branch_tf = transform(branch) 
 
 if True:
-    fig = plt.figure(dpi=800, figsize=(5,4))
+    fig = plt.figure(dpi=800, figsize=(5,3))
     current_path = pathlib.Path(__file__).parent.resolve()
     os.chdir('data/path_data')
     for file in glob.glob("*.csv"):
@@ -68,10 +68,10 @@ if True:
     
     cut_x = np.array([- 1.0/2 - i / 5000.0 for i in range(2500)])
     cut_y = 0.01 * np.sin(np.pi * cut_x * 50)
-    plt.plot(cut_x, cut_y, color=orange, linewidth=0.1,zorder=0)
+    # plt.plot(cut_x, cut_y, color=orange, linewidth=0.1,zorder=0)
     log_cut_minus = np.array([-1, -10]);
     log_cut_plus = np.array([0, 10]);
-    plt.plot(log_cut_minus, 0*log_cut_minus, 
+    ''' plt.plot(log_cut_minus, 0*log_cut_minus, 
              color=gray_dark, 
              linestyle='dashed',
              dashes=(40, 25),
@@ -81,12 +81,13 @@ if True:
              linestyle='dashed',
              dashes=(40, 25),
              zorder=0, linewidth=0.1)
+    '''
 
-    plt.text(-0.65, 0.25, r"$(+-)_0$")
-    plt.text(-0.65, -0.28, r"$(+-)_0$")
+    # plt.text(-0.65, 0.25, r"$(+-)_0$")
+    # plt.text(-0.65, -0.28, r"$(+-)_0$")
 
 
-    plt.axis([-1.8, 0.1, -0.8, 0.8])
+    plt.axis([-1.8, 0.1, -0.7, 0.5])
     ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
@@ -94,16 +95,4 @@ if True:
     fig.tight_layout()
     plt.savefig(output_dir + '/network.png', dpi=fig.dpi)
     plt.savefig(output_dir + '/network.pdf', dpi=fig.dpi)
-
-else:
-    print("Rendering single path")
-    s1 = int(sys.argv[1])
-    fig = plt.figure(dpi=1000)
-    # for i in range(6):
-    filename= f'data/path_data/path_data_{s1}.csv'
-    data = np.loadtxt(filename,delimiter=",", dtype=np.complex_)
-    data = transform(data)
-    x_data = data[:, 0]
-    plt.plot(x_data.real, x_data.imag)
-    plt.savefig('graphics/test_graphic.png', dpi=fig.dpi)
 
