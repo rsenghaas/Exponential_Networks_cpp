@@ -38,15 +38,26 @@ auto Network::get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
 }
 
 auto Network::start_paths() -> void {
-  for (auto& r : ramification_points_) {
-    if (std::abs(r.at(kIndexX)) < 0.00001) {
+  double branch_n = 2;
+  for (auto r_it = ramification_points_.begin(); r_it != ramification_points_.end(); r_it++) {
+    if (std::abs(r_it->at(kIndexX)) < 1e-20) {
       continue;
     }
-    cplx b = r.at(kIndexX);
-    cplx y = r.at(kIndexY);
+    if (std::abs(r_it->at(kIndexX) - std::next(r_it)->at(kIndexX)) < 1e-8 &&
+            std::abs(r_it->at(kIndexY) - std::next(r_it)->at(kIndexY)) < 1e-8) {
+        branch_n += 1.0;
+        continue;
+    }
+    spdlog::debug("Branch point has degree {}",branch_n);
 
-    spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),
-                 complex_to_string(y));
+    cplx zetaN = std::exp(2 * pi * J / branch_n);
+    cplx zetaNplusOne = std::exp(2 * pi * J / (branch_n + 1));
+    std::cout << "Zeta_n is " << zetaN << std::endl;
+
+    cplx b = r_it->at(kIndexX);
+    cplx y = r_it->at(kIndexY);
+
+    spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),complex_to_string(std::log(y)));
 
     state_type start_state;
     start_state.at(kIndexX) = b;
@@ -56,37 +67,48 @@ auto Network::start_paths() -> void {
     // Compute the expansion around a branch point.
     // TODO: I should move this to the SW_curve class and compute it generally
     // (kappa = 1 / n! d^n H / dy^n * (1 / d H / dx))
-    cplx kappa =
-        -1.0 / 2 * curve_->eval_d2H_dy2(b, y) / curve_->eval_dH_dx(b, y);
+    cplx kappa = curve_->get_kappa(b, y, branch_n);
     // spdlog::debug("kappa = {}", complex_to_string(kappa));
-
-    cplx dx;
+    cplx c = (1.0 - zetaN);
+    cplx dx;  
     cplx dy;
-    for (uint32_t k = 0; k < 3; k++) {
+    
+    double dt = kBranchPointStep;
+    do {
+        dx = std::pow(
+                std::pow((branch_n + 1) / (branch_n * c) * std::pow(kappa, 1.0 / branch_n) * y * b * std::exp(J * theta_) * dt, branch_n),
+                    1.0 / (branch_n + 1));
+        spdlog::debug("dx is {}e-10", complex_to_string(dx * 1e10));
+        dy = (branch_n + 1) / (c * branch_n) * y * b * std::exp(J * theta_) * dt / dx;
+        spdlog::debug("dy is {}e-10", complex_to_string(dy * 1e10));
+        dt *= 2;
+    } while (std::abs(dy) < 1e-7 * std::pow(10,(branch_n - 2)));
+
+    for (uint32_t k = 0; k < branch_n + 1; k++) {
+
+      dx *= zetaNplusOne;  // ! This is only valid for exponential networks.
+      dy /= zetaNplusOne;
+      spdlog::debug("dy is {}e-10", complex_to_string(dy * 1e10));
       std::vector<state_type> v;
       std::vector<double> masses;
       state_type next_state;
 
       v.push_back(start_state);
       masses.push_back(0);
-
-      dx = std::pow(std::pow(3.0 / 4 * std::pow(kappa, 1.0 / 2) * y * b *
-                                 std::exp(J * theta_) * kInitialStepSize,
-                             2.0),
-                    1.0 / 3) *
-           std::pow(kZeta3, k);  // ! This is only valid for exponential networks.
-                                 //
-      spdlog::debug(complex_to_string(dx));
-      dy = 3.0 / 4.0 * y * b * std::exp(J * theta_) * kInitialStepSize / dx;
-    
+      
       next_state.at(kIndexX) = b + dx;
       next_state.at(kIndexY1) = start_state.at(kIndexY1) + dy / y;
-      next_state.at(kIndexY2) = start_state.at(kIndexY2) - dy / y;
-      if(!determine_sign(*curve_, start_state, next_state)) {
-        // next_state.at(kIndexY1) = start_state.at(kIndexY1) - dy / y;
-        // next_state.at(kIndexY2) = start_state.at(kIndexY2) + dy / y;
-      }
+      next_state.at(kIndexY2) = start_state.at(kIndexY2) + zetaN * dy / y;
+
+      
       curve_->match_fiber(next_state);
+      auto s = new_paths_.size();
+      if(s == 16 || s == 18 || s == 19) {
+        std::cout << "HEREEE" << std::endl;
+        print_state_type(next_state);
+        invert_state(next_state);
+        print_state_type(next_state);
+      }
       v.push_back(next_state);
 
       spdlog::debug(
@@ -104,9 +126,24 @@ auto Network::start_paths() -> void {
 
       // Doing some runge kutta steps before going into the boost::odeint
       // integration.
+      spdlog::debug("Runge-Kutta");
+
+      // auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
+      //              std::vector<state_type> &v, std::vector<double> &masses,
+      //              const double step_size, double theta) -> void;
+
+      double step_size = kInitialStepSize;
       for (uint32_t i = 0; i < kInitialSteps; i++) {
-        ODE_runge_kutta_step(curve_, v, masses, kInitialStepSize, theta_);
+        ODE_runge_kutta_step(curve_, v, masses, step_size, theta_);
+        if (i % 10 == 0) {
+            next_state = v.back();
+            curve_->match_fiber(next_state);
+            // determine_sign(*curve_, v.at(v.size() - 2), next_state);
+            v.back() = next_state;
+            step_size = std::min(2 * step_size, 1e-14);
+        }
       }
+      spdlog::debug("Runge-Kutta done.");
 
       Path path(v, masses, new_paths_.size());
       new_paths_.push_back(std::move(path));
@@ -120,6 +157,8 @@ auto Network::start_paths() -> void {
           complex_to_string(std::abs(curve_->eval_H(
               v.back().at(kIndexX), std::exp(v.back().at(kIndexY2))))));
     }
+
+    branch_n = 2;
     spdlog::debug("Paths are started.");
   }
 }
@@ -210,17 +249,6 @@ auto Network::two_path_intersections(std::vector<Path>::iterator path_A_it,
   SinglePathMap path_A_map = SinglePathMap(path_A_it);
   SinglePathMap path_B_map = SinglePathMap(path_B_it);
   Map two_path_map;
-  if (path_B_it->path_id_ == 3) {
-    for (auto& pp : path_B_map.pp_vec) {
-      if (pp.t.at(kIndexStartTime) < 35) {
-        continue;
-      }
-      // print_path_point(pp);
-      if (pp.t.at(kIndexStartTime) > 38) {
-        break;
-      }
-    }
-  }
   two_path_map.add_path(path_A_map.pp_vec);
   return two_path_map.get_intersections(path_B_map.pp_vec);
 }
@@ -239,10 +267,21 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
   std::vector<intersection> intersections =
       two_path_intersections(path_A_it, path_B_it);
   auto inter_it = intersections.begin();
+  if (inter_it == intersections.end()) {
+    return;
+  }
   if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
     inter_it++;
+    if(inter_it == intersections.end()) {
+        return;
+    }
   }
-  inter_it += intersection_number;
+  for(uint32_t k = 0; k < intersection_number; k++) {
+      inter_it++;
+      if(inter_it == intersections.end()) {
+          return;
+      }
+  }
   print_intersection(*inter_it);
   state_type pt_A =
       path_A_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
@@ -298,8 +337,17 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
       shift_state.at(kIndexY1) = std::log(std::exp(shift_state.at(kIndexY1))) +
                                  2 * pi * J * static_cast<double>(n);
       print_state_type(shift_state);
+      if(state_is_trivial(next_state)){
+        std::cout << "trivial" << std::endl;
+        return;
+      }
       add_new_path(shift_state);
     } else {
+      if(state_is_trivial(next_state)) {
+        std::cout << "trivial" << std::endl;
+        return; 
+      }
+      print_state_type(next_state);
       add_new_path(next_state);
     }
   }
@@ -329,20 +377,21 @@ auto line_intersection(std::array<cplx, 2> A, std::array<cplx, 2> B, cplx& z)
   return false;
 }
 
-auto intersect_states(state_type state_A, state_type state_B,
+auto Network::intersect_states(state_type state_A, state_type state_B,
                       state_type& new_state) -> bool {
   if (std::abs(std::exp(state_A.at(kIndexY1)) -
                std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
     new_state.at(kIndexX) = state_A.at(kIndexX);
-    new_state.at(kIndexY1) = std::log(std::exp(state_B.at(kIndexY1)));
-    new_state.at(kIndexY2) = std::log(std::exp(state_A.at(kIndexY2)));
+    new_state.at(kIndexY1) = state_B.at(kIndexY1) 
+        + J *  state_A.at(kIndexY1).imag() - J*  state_B.at(kIndexY2).imag();
+    new_state.at(kIndexY2) = state_A.at(kIndexY2);
     return true;
   }
   if (std::abs(std::exp(state_A.at(kIndexY2)) -
                std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
     new_state.at(kIndexX) = state_A.at(kIndexX);
-    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
-    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY2)));
+    new_state.at(kIndexY1) = state_A.at(kIndexY1) - J * state_A.at(kIndexY2).imag() + J* state_B.at(kIndexY1).imag();
+    new_state.at(kIndexY2) = state_B.at(kIndexY2);
     return true;
   }
   if (std::abs(std::exp(state_A.at(kIndexY1)) -
@@ -350,8 +399,8 @@ auto intersect_states(state_type state_A, state_type state_B,
       std::abs(std::exp(state_A.at(kIndexY2)) -
                std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
     new_state.at(kIndexX) = state_A.at(kIndexX);
-    new_state.at(kIndexY1) = std::log(std::exp(state_A.at(kIndexY1)));
-    new_state.at(kIndexY2) = std::log(std::exp(state_B.at(kIndexY1)));
+    new_state.at(kIndexY1) = state_A.at(kIndexY1);
+    new_state.at(kIndexY2) = state_B.at(kIndexY1);
     return true;
   }
 
@@ -432,6 +481,9 @@ auto Network::compute_intersection_points(intersection& inter,
         if (intersect_states(state_A, state_B, new_state)) {
           new_state.at(kIndexY1) += 2 * pi * J * static_cast<double>(n);
           spdlog::debug("Return state!");
+          if (std::abs(new_state.at(kIndexY1) - new_state.at(kIndexY2)) < 1e-25) {
+              return false;
+          }
           return true;
         }
       }

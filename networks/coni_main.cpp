@@ -3,10 +3,14 @@
 #include "coni.hpp"
 #include "files.hpp"
 #include "magic_numbers.h"
+#include <cln/float.h>
 
-constexpr double kDefaultTheta = std::numbers::pi / 2.0;
-
+// constexpr double kDefaultTheta = 0.7320060663978706; // std::numbers::pi / 2.0 - 0.01;
+constexpr double kDefaultTheta = 0; // std::numbers::pi / 2.0 - 0.01;
+// constexpr double kDefaultTheta = 0.06605624168680607;
+// constexpr double kDefaultTheta =  0.12261412041038638;
 auto main(int argc, char* argv[]) -> int {
+  cln::cl_inhibit_floating_point_underflow = true;
   create_directories();
   double theta{kDefaultTheta};
   if (argc > 1) {

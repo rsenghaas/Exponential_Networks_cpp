@@ -48,3 +48,14 @@ auto get_log_sheet(state_type &v) -> int32_t {
   int32_t k2 = static_cast<int32_t>(std::round((dv_y2 / (2 * pi * J)).real()));
   return k1 - k2;
 }
+
+auto invert_state(state_type& v) -> void {
+  cplx const y1_coord = v.at(kIndexY1);
+  v.at(kIndexY1) = v.at(kIndexY2);
+  v.at(kIndexY2) = y1_coord;
+}
+
+auto state_is_trivial(const state_type &v) -> bool {
+    spdlog::debug("{}", std::abs(v.at(kIndexY1) - v.at(kIndexY2)));
+    return (std::abs(v.at(kIndexY1) - v.at(kIndexY2)) < 1e-15);
+}

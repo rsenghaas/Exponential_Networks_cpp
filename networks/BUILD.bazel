@@ -119,7 +119,7 @@ cc_library(
         ":sw_curve",
         ":util",
         "@eigen_archive//:eigen",
-        "@spdlog",
+        # "@spdlog",
     ]
 )
 
@@ -143,7 +143,8 @@ cc_library(
     ],
     deps = [
         ":arb",
-        "@spdlog",
+        "@eigen_archive//:eigen"
+        # "@spdlog",
         # "@arb_archive//:arb",
     ],
 )
@@ -168,7 +169,7 @@ cc_library(
         ":util",
         ":ode_integrator",
         ":sw_curve",
-        "@spdlog",
+        # "@spdlog",
     ],
 )
 
@@ -226,7 +227,7 @@ cc_library(
     deps = [
         ":path",
         ":util",
-        # "@spdlog",
+        "@spdlog",
     ]
 )
 

@@ -70,8 +70,9 @@ auto ODE_integrator::integrate_ode(double cutoff) -> void {
         loop_counter > 3) {
       break;
     }
+    std::cout << obs_.states.size() << std::endl;
     integrate_adaptive(stepper, diff_, v0_, t0_, t0_ + kIntegratePeriod,
-                       kInitialStepSize, observer(obs_));
+                       kIntegraterStepSize, observer(obs_));
     // integrate_const(runge_kutta4<state_type>(), diff_, v0_, t0_, t0_ +
     // kInitialStepSize, kInitialStepSize, observer(obs_));
     diff_.curve_->match_fiber(v0_);

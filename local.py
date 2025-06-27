@@ -79,7 +79,8 @@ if sys.argv[1] == "all":
              markersize=5,
              fillstyle='none', linestyle='none', mew=2)
 
-    plt.axis([-2.0, 3.0, -1.5, 1.5])
+    plt.axis([-3.0, 3.0, -1.5, 1.5])
+    # plt.axis([-10.0, 10.0, -10.5, 10.5])
     ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
@@ -110,7 +111,9 @@ else:
     plt.plot(branch_tf.real, branch_tf.imag, color=orange, marker='x',
              markersize=5,
              fillstyle='none', linestyle='none', mew=2)
-    plt.axis([-2.0, 3.0, -1.5, 1.5])
+    # plt.axis([-2.0, 3.0, -1.5, 1.5])
+    plt.axis([-5.0, 5.0, -5.5, 5.5])
+
     ax = plt.gca()
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)

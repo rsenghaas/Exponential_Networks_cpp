@@ -1,7 +1,7 @@
 #ifndef ODE_INTEGRATOR_HPP_
 #define ODE_INTEGRATOR_HPP_
 
-#include <spdlog/spdlog.h>
+#include "spdlog/spdlog.h"
 
 #include <algorithm>
 #include <boost/numeric/odeint.hpp>

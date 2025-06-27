@@ -8,10 +8,12 @@
 
 // TODO: Introduce dedicated type for this kind of function.
 auto H_local(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
+auto H_local_bm(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
+auto H_local_alt(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
 
 class Local: protected Network {
  public:
-  explicit Local(double theta) : Network(H_local, theta) {}
+  explicit Local(double theta) : Network(H_local_bm, theta) {}
 
   auto custom_BPS(double cutoff) -> void;
 

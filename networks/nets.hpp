@@ -58,6 +58,9 @@ class Network {
   auto get_iterator_by_id(std::vector<Path> &path_vec, uint32_t id)
       -> std::vector<Path>::iterator;
   // auto determine_sign(const state_type &r, state_type &v) -> void;
+  //
+  auto intersect_states(state_type state_A, state_type state_B,
+                      state_type& new_state) -> bool;
 
   auto move_to_evolved(std::vector<Path>::iterator) -> void;
   auto add_new_paths() -> void;

@@ -47,6 +47,8 @@ class SW_curve {
   auto get_branched_sheet(const cplx &x) -> cplx;
   auto match_fiber(state_type &v) -> void;
   auto save_branch_points(std::vector<cplx> branch_points) -> void;
+  auto refine_root(const cplx& y, const cplx &x) -> cplx;
+  auto get_kappa(const cplx &x, const cplx &y, uint32_t n) -> cplx;
 
   std::mutex sw_mutex;
   std::string mode;

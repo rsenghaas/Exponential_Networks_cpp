@@ -4,7 +4,7 @@
 #include "files.hpp"
 #include "magic_numbers.h"
 
-constexpr double kDefaultTheta = std::numbers::pi / 2.0;
+constexpr double kDefaultTheta = -std::numbers::pi / 2.0 + 0.001;
 
 auto main(int argc, char* argv[]) -> int {
   create_directories();

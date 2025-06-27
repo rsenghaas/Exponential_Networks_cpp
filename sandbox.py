@@ -32,11 +32,11 @@ lime = '#caff00'
 purple = '#9a80f4'
 
 
-path_colors = {3: red, 4: green, 6: blue, 8: green,
-               10: green, 11: grey, 12:grey, 13: green, 14: grey}
+path_colors = {0: grey, 3: green, 6: paster_green, 9: green,
+               10: red, 12:pastel_green, 13: red}
 # path_colors = {0: light_grey, 4: green, 7: red, 8: green}
 
-partition = '3_1_part_2_2_part_transition'
+partition = 'randomshit'
 # TODO: Need to change directories, so we can actually run that from the subdirectories.
 if os.path.exists('./plot_script.py'):
     output_dir = '.'

@@ -41,6 +41,7 @@ class Path {
   auto save_data() -> void;
   auto get_endmass() -> double { return masses_.back(); }
   auto truncate(uint32_t t_start, uint32_t t_end) -> void;
+  auto override_endpoint(state_type& v) -> void;
 
   uint32_t path_id_;
 

@@ -188,6 +188,11 @@ auto Path::save_data() -> void {
   }
 }
 
+auto Path::override_endpoint(state_type& v) -> void {
+    v_.back() = v;
+}
+
+
 auto Path::get_point(uint32_t t) -> state_type { return v_.at(t); }
 
 auto Path::truncate(uint32_t t_start, uint32_t t_end) -> void {

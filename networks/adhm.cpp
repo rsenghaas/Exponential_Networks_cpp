@@ -122,19 +122,6 @@ auto get_iterator_by_id(std::vector<Path>& path_vec, uint32_t id)
   return ret_it;
 }
 
-
-auto ADHM::get_puncture_point(uint32_t truncate) -> state_type {
-    auto path_it = get_iterator_by_id(new_paths_, 1);
-    evolve_path(path_it, 4*kD4Cutoff);
-    path_it->truncate(0, truncate);
-    return path_it->get_endpoint();
-}
-
-auto ADHM::get_puncture_mass() -> double {
-    auto path_it = get_iterator_by_id(new_paths_, 1);
-    return path_it->get_endmass();
-}
-
 const state_type cutoffPoint = {
   -1.8897512312374315e-09 - 1.8882623082801205e-10 * J,
   -20.08185327082071 + 3.2411832963911094 * J,
@@ -306,12 +293,6 @@ auto make_circe_line(std::vector<Path>& path_vec, uint32_t path_id) -> void {
   *path_it = path;
 }
 
-auto invert_state(state_type& v) -> void {
-  cplx const y1_coord = v.at(kIndexY1);
-  v.at(kIndexY1) = v.at(kIndexY2);
-  v.at(kIndexY2) = y1_coord;
-}
-
 auto overwrite_path(std::vector<Path>::iterator path_it, const state_type& v) {
   std::vector<state_type> v_vec = {v};
   std::vector<double> masses_vec = {0};
@@ -395,77 +376,120 @@ auto ADHM::draw_fans() -> void {
   save_data(8);
 }
 
-auto ADHM::custom_BPS() -> void { 
+auto ADHM::custom_BPS() -> void {
   auto path_it = get_iterator_by_id(new_paths_, 0);
   overwrite_path(path_it, cutoffPoint);
-  evolve_path(path_it, 3*kD4Cutoff);
+  evolve_path(path_it, 4*kD4Cutoff);
+  path_it->truncate(0, 2100);
   save_data(0);
 
   path_it = get_iterator_by_id(new_paths_, 1);
-  evolve_path(path_it, kD4Cutoff);
+  evolve_path(path_it, 4*kCutoff);
+
+  self_intersection_handler(1, true, -1, 0, false, false); 
+  save_data(1);
 
   path_it = get_iterator_by_id(new_paths_, 2);
-  evolve_path(path_it, kD4Cutoff);
-  path_it->truncate(0, 1800);
-
-
-  two_path_intersection_handler(0,2, true, false, 3, 0, true, true);
-  
-  save_data(0);
-  save_data(1);
+  evolve_path(path_it, kCutoff);
+  path_it-> truncate(0, 1400);
   save_data(2);
 
   path_it = get_iterator_by_id(new_paths_, 3);
-  evolve_path(path_it, 4*kD4Cutoff);
 
-  path_it->truncate(0,40);
-  auto endpoint = path_it->get_endpoint();
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(2,3, true, true, 0,0, false, false);
+  save_data(2);
   save_data(3);
 
-  self_intersection_handler(1, true, -1, 0, false, false);
-  save_data(1);
-
   path_it = get_iterator_by_id(new_paths_, 4);
-  evolve_path(path_it, kD4Cutoff);
-  path_it->truncate(0, 100);
-  save_data(4);
-
-
-  endpoint.at(kIndexY2) += 4 * pi * J;
+  auto endpoint = path_it->get_endpoint();
+  invert_state(endpoint);
   add_new_path(endpoint);
+  evolve_path(path_it, kCutoff);
 
   path_it = get_iterator_by_id(new_paths_, 5);
-  evolve_path(path_it, kD4Cutoff);
+  evolve_path(path_it, kCutoff);
   save_data(5);
 
-
-  two_path_intersection_handler(5,4, true, true, -1, 0, false, false);
+  two_path_intersection_handler(1,4, false, true, -1, 0, false, false);
   save_data(4);
-  save_data(5);
 
   path_it = get_iterator_by_id(new_paths_, 6);
-  evolve_path(path_it, kD4Cutoff);
+  evolve_path(path_it, kCutoff);
 
-  two_path_intersection_handler(2, 6,true, true, 0,0, true, false);
-  save_data(2);
+  two_path_intersection_handler(2,6, false, true, 0, 0, true, false);
   save_data(6);
 
   path_it = get_iterator_by_id(new_paths_, 7);
-  evolve_path(path_it, kD4Cutoff);
-  save_data(7);
-
-  endpoint.at(kIndexY2) = endpoint.at(kIndexY1) - 4 * pi * J;
+  endpoint = path_it->get_endpoint();
+  invert_state(endpoint);
   add_new_path(endpoint);
+  path_it = get_iterator_by_id(new_paths_, 7);
+  evolve_path(path_it, kCutoff);
+  save_data(7);
 
   path_it = get_iterator_by_id(new_paths_, 8);
-  evolve_path(path_it, kD4Cutoff);
-  save_data(8);
-  two_path_intersection_handler(1, 7, false, true, -1, 0, false, false);
+  evolve_path(path_it, kCutoff);
 
-  two_path_intersection_handler(1, 8, false, true, -1, 0, false, false);
-
+  two_path_intersection_handler(1,7, false, true, -3,0, false, false);
   save_data(7);
+
+  path_it = get_iterator_by_id(new_paths_, 9);
+  evolve_path(path_it, kCutoff);
+  two_path_intersection_handler(8, 9, true, true, -3, 0, true, false);
   save_data(8);
+  save_data(9);
+
+  path_it = get_iterator_by_id(new_paths_, 10);
+  evolve_path(path_it, kCutoff);
+
+  two_path_intersection_handler(2,10, false, true, 0, 0, true, false);
+  save_data(10);
+
+  path_it = get_iterator_by_id(new_paths_, 11);
+  evolve_path(path_it, kCutoff);
+
+
+  two_path_intersection_handler(1,11, false, true, -1,0, false, false);
+  save_data(11);
+
+  path_it = get_iterator_by_id(new_paths_, 12);
+  evolve_path(path_it, kCutoff);
+
+
+  two_path_intersection_handler(5, 12, true, true, -1, 0, true, false);
+  save_data(5);
+  save_data(12);
+
+  path_it = get_iterator_by_id(new_paths_, 13);
+  evolve_path(path_it, kCutoff);
+  save_data(13);
+
+  two_path_intersection_handler(2,13, false, true, 0, 0, true, false);
+  save_data(13);
+
+  path_it = get_iterator_by_id(new_paths_, 14);
+  evolve_path(path_it, kCutoff);
+  save_data(14);
+
+
+
+
+  /*two_path_intersection_handler(1, 6, false, true, -1,0, false, false); 
+  save_data(6);
+
+  path_it = get_iterator_by_id(new_paths_, 7);
+  evolve_path(path_it, kCutoff);
+  save_data(7);
+
+
+  two_path_intersection_handler(2,7, true, true, 0,0, false, false);
+  save_data(7);
+
+  path_it = get_iterator_by_id(new_paths_, 8);
+  evolve_path(path_it, kCutoff);
+  save_data(8); */
 
 
   /* auto path_it = get_iterator_by_id(new_paths_, 1);
@@ -1203,8 +1227,17 @@ auto ADHM::compute_intersection_points(intersection& inter,
 
   std::array<cplx, 2> pt_A;
   std::array<cplx, 2> pt_B;
+    
+  
+  if (A_start_time < 10) {
+    A_start_time = 10;
+  }
 
-  for (uint32_t t_A = A_start_time - 10; t_A < A_end_time + 10; t_A++) {
+  if (B_start_time < 10) {
+    B_start_time = 10;
+  }
+  
+  for (int32_t t_A = A_start_time - 10; t_A < A_end_time + 10; t_A++) {
     if (t_A < 0) {
       continue;
     }
@@ -1212,7 +1245,7 @@ auto ADHM::compute_intersection_points(intersection& inter,
       return false;
     }
 
-    for (uint32_t t_B = B_start_time - 10; t_B < B_end_time + 10; t_B++) {
+    for (int32_t t_B = B_start_time - 10; t_B < B_end_time + 10; t_B++) {
       if (t_B < 0) {
         continue;
       }
@@ -1224,7 +1257,7 @@ auto ADHM::compute_intersection_points(intersection& inter,
               path_A_it->get_point(t_A + 1).at(kIndexX)};
       pt_B = {path_B_it->get_point(t_B).at(kIndexX),
               path_B_it->get_point(t_B + 1).at(kIndexX)};
-
+        
       if (line_intersection(pt_A, pt_B, z)) {
         spdlog::debug("Line intersection found at {}", complex_to_string(z));
         state_type state_A = path_A_it->get_point(t_A);

@@ -55,6 +55,7 @@ auto print_intersection(const intersection &intersect) -> void;
 auto print_path_point(const path_point &pp) -> void;
 auto print_state_type(const state_type &v) -> void;
 auto get_log_sheet(state_type &v) -> int32_t;
+auto invert_state(state_type& v) -> void;
 
 inline auto operator+(const state_type &v1, const state_type &v2)
     -> state_type {
@@ -66,5 +67,7 @@ inline auto operator*(const double &lambda, const state_type &v) -> state_type {
   return state_type{lambda * v.at(kIndexX), lambda * v.at(kIndexY1),
                     lambda * v.at(kIndexY2)};
 }
+
+auto state_is_trivial(const state_type &v) -> bool;
 
 #endif  // TYPE_UTIL_HPP_
