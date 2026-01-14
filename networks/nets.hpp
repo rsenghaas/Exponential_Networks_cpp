@@ -92,6 +92,11 @@ class Network {
                                    std::vector<Path>::iterator path_B_it,
                                    int32_t n, state_type &new_state) -> bool;
 
+  auto draw_circle(state_type &v, cplx center) -> std::vector<state_type>;
+  auto initial_integration() -> void;
+  auto draw_straight(state_type &v, cplx x_end) -> std::vector<state_type>;
+  auto probe_curve() -> void;
+
   // *********Old Stuff*********** //
   Map map_;
   std::vector<intersection> new_intersections_;

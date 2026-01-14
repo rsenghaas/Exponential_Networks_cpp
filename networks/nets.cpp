@@ -126,25 +126,7 @@ auto Network::start_paths() -> void {
 
       // Doing some runge kutta steps before going into the boost::odeint
       // integration.
-      spdlog::debug("Runge-Kutta");
-
-      // auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
-      //              std::vector<state_type> &v, std::vector<double> &masses,
-      //              const double step_size, double theta) -> void;
-
-      double step_size = kInitialStepSize;
-      for (uint32_t i = 0; i < kInitialSteps; i++) {
-        ODE_runge_kutta_step(curve_, v, masses, step_size, theta_);
-        if (i % 10 == 0) {
-            next_state = v.back();
-            curve_->match_fiber(next_state);
-            // determine_sign(*curve_, v.at(v.size() - 2), next_state);
-            v.back() = next_state;
-            step_size = std::min(2 * step_size, 1e-14);
-        }
-      }
-      spdlog::debug("Runge-Kutta done.");
-
+     
       Path path(v, masses, new_paths_.size());
       new_paths_.push_back(std::move(path));
       next_id_++;
@@ -161,6 +143,32 @@ auto Network::start_paths() -> void {
     branch_n = 2;
     spdlog::debug("Paths are started.");
   }
+}
+
+auto Network::initial_integration() -> void {
+  for(auto& path : new_paths_) {
+    spdlog::debug("Runge-Kutta");
+
+      // auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
+      //              std::vector<state_type> &v, std::vector<double> &masses,
+      //              const double step_size, double theta) -> void;
+
+      double step_size = kInitialStepSize;
+      std::vector<state_type> v{path.get_endpoint()};
+      std::vector<double> masses{path.get_endmass()};
+      for (uint32_t i = 0; i < kInitialSteps; i++) {
+        ODE_runge_kutta_step(curve_, v, masses, step_size, theta_);
+        if (i % 10 == 0) {
+            auto next_state = v.back();
+            curve_->match_fiber(next_state);
+            // determine_sign(*curve_, v.at(v.size() - 2), next_state);
+            v.back() = next_state;
+            step_size = std::min(2 * step_size, 1e-14);
+        }
+      }
+      spdlog::debug("Runge-Kutta done.");
+      path.append_data(v, masses);
+    }
 }
 
 auto Network::evolve_path(std::vector<Path>::iterator path_it, double cutoff)
@@ -837,4 +845,172 @@ auto Network::print_ramification_points() -> void {
               << complex_to_string(r.at(kIndexX))
               << "with y = " << complex_to_string(r.at(kIndexY)) << std::endl;
   }
+}
+
+auto Network::draw_circle(state_type &v, cplx center) -> std::vector<state_type> {
+    cplx radius = v.at(kIndexX) - center;
+    std::vector<state_type> circle;
+    circle.push_back(v);
+    for(int i = 0; i <  501; i++) {
+        v.at(kIndexX) = center + radius * std::exp(2 * pi * J * static_cast<double>(i) / 500.0);
+        curve_->match_fiber(v);
+        circle.push_back(v);
+    }
+    return circle;
+}
+
+auto Network::draw_straight(state_type &v, cplx x_end) -> std::vector<state_type> {
+    std::vector<state_type> circle;
+    cplx x_start = v.at(kIndexX);
+    circle.push_back(v);
+    for(uint32_t i = 0; i <  501; i++) {
+        v.at(kIndexX) = ((1 - 1.0 * i / 500.0) * std::abs(x_start) + 1.0 * i / 500.0 * std::abs(x_end))
+            * std::exp((std::arg(x_start) * (1 - 1.0 * i / 500.0) +
+                    std::arg(x_end) * 1.0 * i / 500.0) * J);
+        curve_->match_fiber(v);
+        circle.push_back(v);
+    }
+    return circle;
+}
+
+auto Network::probe_curve() -> void { // initial_integration();
+    cplx x0 = 5e-3;
+    state_type v;
+    auto fiber = curve_->get_fiber(x0);
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+        v.at(kIndexX) = x0;
+        v.at(kIndexY1) = std::log(*it);
+        it++;
+        if(it == fiber.end()) {
+            it = fiber.begin();
+        }
+        v.at(kIndexY2) = std::log(*it);
+        print_state_type(v);
+        auto circ = draw_circle(v, 0);
+        std::vector<double> circ_masses;
+        circ_masses.assign(circ.size(), 0);
+        uint32_t index = new_paths_.size();
+        Path circ_path(circ, circ_masses, index);
+        new_paths_.push_back(circ_path);
+        save_data(index);
+        if(it == fiber.begin()) {
+            break;
+        }
+    }
+    for(auto& r : ramification_points_) {
+        auto x_end = r.at(kIndexX);
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x0;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_end);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
+    cplx x_infty = 4.0;
+
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x0;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_infty);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+    }
+    fiber = curve_->get_fiber(x_infty);
+
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+        v.at(kIndexX) = x_infty;
+        v.at(kIndexY1) = std::log(*it);
+        it++;
+        if(it == fiber.end()) {
+            it = fiber.begin();
+        }
+        v.at(kIndexY2) = std::log(*it);
+        print_state_type(v);
+        auto circ = draw_circle(v, 0);
+        std::vector<double> circ_masses;
+        circ_masses.assign(circ.size(), 0);
+        uint32_t index = new_paths_.size();
+        Path circ_path(circ, circ_masses, index);
+        new_paths_.push_back(circ_path);
+        save_data(index);
+        if(it == fiber.begin()) {
+            break;
+        }
+    }
+    for(auto& r : ramification_points_) {
+        auto x_end = r.at(kIndexX);
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x_infty;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_end);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
+
+    cplx radius = 0.005;
+    for(auto& r : ramification_points_) {
+        auto x_center = r.at(kIndexX);
+        v.at(kIndexX) = x_center + radius;
+        fiber = curve_->get_fiber(v.at(kIndexX));
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_circle(v, x_center);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
 }

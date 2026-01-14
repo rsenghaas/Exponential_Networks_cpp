@@ -1,0 +1,413 @@
+#include "coni.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include "ginac_util.hpp"
+#include "type_util.hpp"
+
+constexpr cplx kQ_coni =  11.0 / 8.0 - 3.0 / 4.0 * J;
+
+auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+  return -1 + y + x * y - complex_to_ex(kQ_coni) * GiNaC::pow(y, 2) * x;
+}
+
+auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+    int f = -1;
+    GiNaC::ex x_sub = x * GiNaC::pow(-y, f);
+    /* 
+     GiNaC::ex aug = GiNaC::pow(x_sub, 2) * (y - 1)
+     + x_sub * (
+         GiNaC::pow(y, 4)
+         - GiNaC::pow(y, 3) * complex_to_ex(kQ_coni)
+         + 2 * GiNaC::pow(y, 2) * GiNaC::pow(complex_to_ex(kQ_coni), 2)
+         - 2 * GiNaC::pow(y, 2) * complex_to_ex(kQ_coni)
+         - y * GiNaC::pow(complex_to_ex(kQ_coni), 2)
+         + GiNaC::pow(complex_to_ex(kQ_coni), 2)
+     )
+     + GiNaC::pow(y, 3) * GiNaC::pow(complex_to_ex(kQ_coni), 4)
+     - GiNaC::pow(y, 4) * GiNaC::pow(complex_to_ex(kQ_coni), 3);*/
+
+    GiNaC::ex aug = GiNaC::pow(complex_to_ex(kQ_coni), 6) * x_sub * GiNaC::pow(y, 4)
+     + GiNaC::pow(complex_to_ex(kQ_coni), 2) * GiNaC::pow(y, 3) * 
+     (1 - GiNaC::pow(complex_to_ex(kQ_coni), 2) * x_sub)
+     + y * (1 - GiNaC::pow(complex_to_ex(kQ_coni), 2) * x_sub)
+     + GiNaC::pow(complex_to_ex(kQ_coni), 2) * x_sub
+     + GiNaC::pow(y, 2) * (
+         GiNaC::pow(complex_to_ex(kQ_coni), 4) * (-GiNaC::pow(x_sub, 2))
+         - 2 * GiNaC::pow(complex_to_ex(kQ_coni), 4) * x_sub
+         + 2 * GiNaC::pow(complex_to_ex(kQ_coni), 2) * x_sub
+         - GiNaC::pow(complex_to_ex(kQ_coni), 2)
+         - 1); 
+
+    /* return (-1 + complex_to_ex(kQ_coni) * y) +
+         (GiNaC::pow(y, 3) - GiNaC::pow(y, 4) + 2 * GiNaC::pow(y, 5) -
+          2 * complex_to_ex(kQ_coni) * GiNaC::pow(y, 5) -
+          complex_to_ex(kQ_coni) * GiNaC::pow(y, 6) +
+          complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 7)) *
+             x +
+         (-GiNaC::pow(y, 9) + GiNaC::pow(y, 10)) * GiNaC::pow(x, 2); */
+    aug = aug * GiNaC::pow(y, -f);
+    std::stringstream F;
+    F << aug.expand().collect(y);
+    spdlog::debug(F.str());
+    return aug;
+}
+
+auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+    int f = -1;
+    auto coni_ex = complex_to_ex(kQ_coni);
+    GiNaC::ex x_sub = x * pow(-y, f); 
+    GiNaC::ex poly = 
+        -GiNaC::pow(coni_ex, 2) + x_sub 
+        - GiNaC::pow(coni_ex, 3) * y 
+        + coni_ex * x_sub * y
+        - 2 * coni_ex * x_sub * GiNaC::pow(y, 2)
+        + 2 * GiNaC::pow(coni_ex, 2) * x_sub * GiNaC::pow(y, 2)
+        - 2 * GiNaC::pow(coni_ex, 2) * x_sub * GiNaC::pow(y, 3)
+        + 2 * GiNaC::pow(coni_ex, 3) * x_sub * GiNaC::pow(y, 3)
+        + GiNaC::pow(coni_ex, 2) * x_sub * GiNaC::pow(y, 4)
+        - 4 * GiNaC::pow(coni_ex, 3) * x_sub * GiNaC::pow(y, 4)
+        + 3 * GiNaC::pow(coni_ex, 4) * x_sub * GiNaC::pow(y, 4)
+        + GiNaC::pow(coni_ex, 3) * x_sub * GiNaC::pow(y, 5)
+        + GiNaC::pow(coni_ex, 4) * x_sub * GiNaC::pow(y, 5)
+        - 2 * GiNaC::pow(coni_ex, 3) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 5)
+        + 2 * GiNaC::pow(coni_ex, 4) * x_sub * GiNaC::pow(y, 6)
+        - GiNaC::pow(coni_ex, 3) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 6)
+        - GiNaC::pow(coni_ex, 4) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 6)
+        - GiNaC::pow(coni_ex, 3) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 7)
+        + 4 * GiNaC::pow(coni_ex, 4) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 7)
+        - 3 * GiNaC::pow(coni_ex, 5) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 7)
+        + 2 * GiNaC::pow(coni_ex, 4) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 8)
+        - 2 * GiNaC::pow(coni_ex, 5) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 8)
+        + 2 * GiNaC::pow(coni_ex, 4) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 9)
+        - 2 * GiNaC::pow(coni_ex, 5) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 9)
+        - GiNaC::pow(coni_ex, 5) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 10)
+        + GiNaC::pow(coni_ex, 6) * GiNaC::pow(x_sub, 3) * GiNaC::pow(y, 10)
+        - GiNaC::pow(coni_ex, 5) * GiNaC::pow(x_sub, 2) * GiNaC::pow(y, 11)
+        + GiNaC::pow(coni_ex, 6) * GiNaC::pow(x_sub, 3) * GiNaC::pow(y, 11);    
+    poly = poly * GiNaC::pow(y, -f);
+    std::stringstream F;
+    F << poly.expand().collect(y);
+    spdlog::debug(F.str());
+    return poly;
+}
+
+auto H_trefoil(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+  return GiNaC::pow(y, 2) * GiNaC::pow(y - 1, 3) -
+         x * (y - complex_to_ex(kQ_coni)) * (y - complex_to_ex(kQ_coni)) *
+             (y - complex_to_ex(kQ_coni));
+}
+
+auto F_fig_8(const GiNaC::symbol& y, const GiNaC::symbol& x) -> GiNaC::ex {
+  return (GiNaC::pow(y, 2) - complex_to_ex(kQ_coni) * GiNaC::pow(y, 3)) +
+         (-1 + 2 * y - 2 * complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 4) +
+          complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 5)) *
+             x +
+         (1 - 2 * complex_to_ex(kQ_coni) * y +
+          2 * complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 4) -
+          complex_to_ex(kQ_coni * kQ_coni * kQ_coni) * GiNaC::pow(y, 5)) *
+             GiNaC::pow(x, 2) +
+         (-complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 2) +
+          complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 3)) *
+             GiNaC::pow(x, 3);
+}
+
+const cplx kZeta5 = std::exp(2.0 * pi * J / 5.0);
+auto F_test(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+  double N = 6;
+  double epsilon = 1 / (64.0);
+  const cplx zetaN = std::exp(2.0 * pi * J / (N + 13.5));
+  GiNaC::ex x_pol = 1;
+  for (uint32_t i = 0; i < N; i++) {
+    x_pol *= (x + 1 -
+              epsilon * (1 + std::pow(0.2, i)) *
+                  GiNaC::pow(complex_to_ex(zetaN), i));
+  }
+  return (y - 4.0) * (y - 4.0) + x_pol;
+}
+
+std::vector<double> ratio_zero = {1, 4, 2, 1, 2,  8,  1, 32, 1, 1,
+                                  2, 2, 1, 4, 64, 16, 1, 1,  1, 2,
+                                  2, 1, 4, 4, 16, 4,  1, 1,  1, 32};
+
+std::vector<double> ratio_pi_half = {2, 1, 1, 1, 2,  2, 16, 1,  1, 1,
+                                     2, 2, 1, 4, 1,  1, 1,  16, 1, 2,
+                                     2, 1, 4, 4, 16, 1, 1,  1,  1, 1};
+
+auto Coni::intersect_and_integrate(uint32_t k1, uint32_t k2, double cutoff) -> bool {
+    uint32_t k =  new_paths_.size();
+    two_path_intersection_handler(k1, k2, false, false, 0, 0, false, false); 
+    if (new_paths_.size() > k) {
+        auto path_it = get_iterator_by_id(new_paths_, k);
+        save_data(path_it->path_id_);
+        evolve_path(path_it, cutoff);
+        save_data(path_it->path_id_);
+        return true;
+    }
+    return false;
+}
+
+auto Coni::custom_BPS_trifoil(double cutoff) -> void {
+    initial_integration();
+    auto path_it = get_iterator_by_id(new_paths_, 0);
+    for (uint32_t k = 0; k < new_paths_.size(); k += 1){
+        auto path_it = get_iterator_by_id(new_paths_, k);
+        save_data(path_it->path_id_);
+        evolve_path(path_it, cutoff);
+        save_data(path_it->path_id_);
+    }
+    uint32_t k = new_paths_.size();
+    two_path_intersection_handler(18, 21, true, true, 0, 0, false, false); 
+    path_it = get_iterator_by_id(new_paths_, k);
+    save_data(path_it->path_id_);
+    evolve_path(path_it, cutoff);
+    save_data(path_it->path_id_);
+    save_data(21);
+    save_data(18);
+    k++; 
+    two_path_intersection_handler(5, 23, false, true, 0, 0, false, false); 
+    save_data(23);
+    path_it = get_iterator_by_id(new_paths_, k);
+    k++;
+
+    two_path_intersection_handler(9, 21, true, true, 0, 0, false, false); 
+    path_it = get_iterator_by_id(new_paths_, k);
+    save_data(path_it->path_id_);
+    evolve_path(path_it, cutoff);
+    save_data(path_it->path_id_);
+    save_data(25);
+    save_data(9);
+    save_data(21);
+    k++;
+
+    two_path_intersection_handler(10, 25, true, false, 0, 0, false, false); 
+    save_data(10);
+    path_it = get_iterator_by_id(new_paths_, 26);
+    save_data(path_it->path_id_);
+    evolve_path(path_it, cutoff);
+    save_data(path_it->path_id_);
+    save_data(26);
+
+
+    two_path_intersection_handler(5, 25, false, false, 0, 0, false, false); 
+
+    path_it = get_iterator_by_id(new_paths_, 5);
+    path_it->truncate(0, 500);
+    two_path_intersection_handler(5, 19, false, true, 0, 0, false, false); 
+    
+    path_it = get_iterator_by_id(new_paths_, 3);
+    path_it->truncate(0, 750);
+
+    two_path_intersection_handler(25, 3, true, true, 0, 0, false, false); 
+    save_data(19);
+    save_data(3);
+    save_data(25); 
+
+    uint32_t generation_start = 0;
+    uint32_t rounds = 2;
+    std::vector<uint32_t> v = {0,1,2,3,7,8,12,13,14,15, 16, 17, 18, 19};
+    for (uint32_t l = 0; l < rounds; l++) {
+        break;
+        uint32_t generation_end = k;
+        for(uint32_t k1 = 0; k1 < generation_end; k1++) {      
+            for(uint32_t k2 = std::max(generation_start,k1 + 1); k2 < generation_end; k2++) 
+            { 
+                if(std::find(v.begin(), v.end(), k1) != v.end() ||
+                    std::find(v.begin(), v.end(), k2) != v.end()) {
+                    continue;
+                }
+                std::cout << k1 << k2 << std::endl;
+                two_path_intersection_handler(k1, k2, false, false, 0, 0, false, false); 
+                if (new_paths_.size() > k) {
+                    path_it = get_iterator_by_id(new_paths_, k);
+                    print_state_type(path_it->get_endpoint());
+                    save_data(path_it->path_id_);
+                    evolve_path(path_it, cutoff);
+                    save_data(path_it->path_id_);
+                    k++;
+                }
+            }
+        }
+        generation_start = generation_end;
+    }
+
+    /* two_path_intersection_handler(17, 23, false, true, 0, 0, false, false); 
+    save_data(23);
+
+    two_path_intersection_handler(17, 20, true, true, 0, 0, false, false); 
+    save_data(17);
+    save_data(20);*/
+
+    // Central charge is close to 4 pi^2!!
+
+    /* path_it = get_iterator_by_id(new_paths_, 17);
+    auto state_A = path_it->get_endpoint();
+    path_it = get_iterator_by_id(new_paths_, 24);
+    state_A.at(kIndexX) = path_it->get_endpoint().at(kIndexX);
+    curve_->match_fiber(state_A);
+    auto state_B = path_it->get_endpoint();
+    state_type next_state;
+    intersect_states(state_A, state_B, next_state);
+    print_state_type(next_state);
+    path_it = get_iterator_by_id(new_paths_, 25);
+    new_paths_.erase(path_it);
+    path_it = get_iterator_by_id(new_paths_, 24);
+    path_it->override_endpoint(next_state);
+    evolve_path(path_it, cutoff);
+    save_data(24); */
+    
+};
+
+auto Coni::custom_BPS_fig_8(double cutoff) -> void {
+    auto path_it = get_iterator_by_id(new_paths_, 1);
+    evolve_path(path_it, cutoff);
+    save_data(path_it->path_id_);
+}
+
+auto Coni::custom_BPS_F() -> void {
+    // initial_integration();
+    cplx x0 = 5e-3;
+    state_type v;
+    save_data(0);
+    auto fiber = curve_->get_fiber(x0);
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+        v.at(kIndexX) = x0;
+        v.at(kIndexY1) = std::log(*it);
+        it++;
+        if(it == fiber.end()) {
+            it = fiber.begin();
+        }
+        v.at(kIndexY2) = std::log(*it);
+        print_state_type(v);
+        auto circ = draw_circle(v, 0);
+        std::vector<double> circ_masses;
+        circ_masses.assign(circ.size(), 0);
+        uint32_t index = new_paths_.size();
+        Path circ_path(circ, circ_masses, index);
+        new_paths_.push_back(circ_path);
+        save_data(index);
+        if(it == fiber.begin()) {
+            break;
+        }
+    }
+    for(auto& r : ramification_points_) {
+        auto x_end = r.at(kIndexX);
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x0;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_end);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
+    cplx x_infty = 4.0;
+
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x0;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_infty);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+    }
+    fiber = curve_->get_fiber(x_infty);
+
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+        v.at(kIndexX) = x_infty;
+        v.at(kIndexY1) = std::log(*it);
+        it++;
+        if(it == fiber.end()) {
+            it = fiber.begin();
+        }
+        v.at(kIndexY2) = std::log(*it);
+        print_state_type(v);
+        auto circ = draw_circle(v, 0);
+        std::vector<double> circ_masses;
+        circ_masses.assign(circ.size(), 0);
+        uint32_t index = new_paths_.size();
+        Path circ_path(circ, circ_masses, index);
+        new_paths_.push_back(circ_path);
+        save_data(index);
+        if(it == fiber.begin()) {
+            break;
+        }
+    }
+    for(auto& r : ramification_points_) {
+        auto x_end = r.at(kIndexX);
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x_infty;
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_straight(v, x_end);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
+
+    cplx radius = 0.005;
+    for(auto& r : ramification_points_) {
+        auto x_center = r.at(kIndexX);
+        v.at(kIndexX) = x_center + radius;
+        fiber = curve_->get_fiber(v.at(kIndexX));
+        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexY1) = std::log(*it);
+            it++;
+            if(it == fiber.end()) {
+                it = fiber.begin();
+            }
+            v.at(kIndexY2) = std::log(*it);
+            print_state_type(v);
+            auto straight = draw_circle(v, x_center);
+            std::vector<double> straight_masses;
+            straight_masses.assign(straight.size(), 0);
+            uint32_t index = new_paths_.size();
+            Path straight_path(straight, straight_masses, index);
+            new_paths_.push_back(straight_path);
+            save_data(index);
+            if(it == fiber.begin()) {
+                break;
+            }
+        }
+    }
+
+
+}
+
+auto Coni::custom_BPS(double cutoff) -> void { custom_BPS_F();}

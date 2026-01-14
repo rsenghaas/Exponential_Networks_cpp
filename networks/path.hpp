@@ -42,12 +42,13 @@ class Path {
   auto get_endmass() -> double { return masses_.back(); }
   auto truncate(uint32_t t_start, uint32_t t_end) -> void;
   auto override_endpoint(state_type& v) -> void;
+  auto append_data(std::vector<state_type>& v, std::vector<double>& masses)
+      -> void;
 
   uint32_t path_id_;
 
  private:
-  auto append_data(std::vector<state_type>& v, std::vector<double>& masses)
-      -> void;
+ 
   std::vector<state_type> v_;
   std::vector<double> masses_;
 };
