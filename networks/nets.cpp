@@ -68,7 +68,7 @@ auto Network::start_paths() -> void {
     // TODO: I should move this to the SW_curve class and compute it generally
     // (kappa = 1 / n! d^n H / dy^n * (1 / d H / dx))
     cplx kappa = curve_->get_kappa(b, y, branch_n);
-    // spdlog::debug("kappa = {}", complex_to_string(kappa));
+    spdlog::debug("HERE kappa = {}", complex_to_string(kappa));
     cplx c = (1.0 - zetaN);
     cplx dx;  
     cplx dy;
@@ -106,7 +106,7 @@ auto Network::start_paths() -> void {
       if(s == 16 || s == 18 || s == 19) {
         std::cout << "HEREEE" << std::endl;
         print_state_type(next_state);
-        invert_state(next_state);
+        // invert_state(next_state);
         print_state_type(next_state);
       }
       v.push_back(next_state);

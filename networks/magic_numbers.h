@@ -30,7 +30,7 @@ const double kOdeRelError = 1e-11;
 const double kFiberCompTolerance = 1e-6;
 
 // Iteration constants.
-const uint32_t kInitialSteps = 150;
+const uint32_t kInitialSteps = 200;
 const uint32_t kZerosMaxIterations = 3000;
 const uint32_t kLineStepsPerUnit = 30;
 
@@ -47,7 +47,7 @@ const double kD4Cutoff = 198.065;
 
 // ODE integration constants.
 const double kIntegratePeriod = 5.0;
-const double kBranchPointStep = 1e-18;
+const double kBranchPointStep = 1e-15;
 const double kInitialStepSize = 1e-15;
 const double kIntegraterStepSize = 1e-8;
 const double kCutoff = 50;

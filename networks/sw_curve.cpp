@@ -1,8 +1,8 @@
 #include "sw_curve.hpp"
 
-#include <acb.h>
-#include <acb_elliptic.h>
-#include <arb.h>
+#include <flint/acb.h>
+#include <flint/acb_elliptic.h>
+#include <flint/arb.h>
 #include <boost/math/special_functions/factorials.hpp>
 
 #include <fstream>

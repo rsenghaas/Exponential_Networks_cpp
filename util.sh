@@ -1,7 +1,7 @@
 #!/bin/bash
 
 case "$1" in
-    -a | --all ) bazelisk run networks -- "$2"; python sandbox.py all; feh -. graphics/test_graphic.png &;;
+    -a | --all ) bazelnr run networks:p2_networks -- "$2"; python plot_p2.py all; feh -. graphics/test_graphic.png &;;
     -b | --build ) bazelisk build networks;;
     -r | --run ) bazelisk run networks  -- "$2";;
     -d | --draw ) python sandbox.py all; feh -. graphics/test_graphic.png;;

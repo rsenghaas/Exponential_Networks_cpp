@@ -7,10 +7,15 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <functional>
 #include <string>
 
 #include "magic_numbers.h"
 #include "type_util.hpp"
+
+using FuncType = std::function<
+      GiNaC::ex(const GiNaC::symbol&, const GiNaC::symbol&)
+>;
 
 auto numeric_to_complex(const GiNaC::numeric &z) -> cplx;
 auto complex_to_ex(const cplx &z) -> GiNaC::ex;

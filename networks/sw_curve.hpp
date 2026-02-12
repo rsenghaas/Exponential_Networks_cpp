@@ -21,7 +21,7 @@
 
 class SW_curve {
  public:
-  SW_curve(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &),
+  SW_curve(FuncType func,
            std::string diff_mode)
       : x_("x"),
         y_("y"),

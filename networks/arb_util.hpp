@@ -1,8 +1,8 @@
 #ifndef ARB_UTIL_HPP_
 #define ARB_UTIL_HPP_
 
-#include <acb.h>
-#include <arb.h>
+#include <flint/acb.h>
+#include <flint/arb.h>
 
 #include <string>
 

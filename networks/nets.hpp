@@ -7,6 +7,7 @@
 #include <complex>
 #include <cstdint>
 #include <iostream>
+#include <functional>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -27,7 +28,7 @@ struct computed_intersection {
 
 class Network {
  public:
-  Network(GiNaC::ex (*func)(const GiNaC::symbol &, const GiNaC::symbol &),
+  Network(FuncType func,
           double theta)
       : theta_(theta) {
     curve_ = std::make_shared<SW_curve>(func, "");
