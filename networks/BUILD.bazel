@@ -88,6 +88,20 @@ cc_library(
 )
 
 cc_library(
+    name = "p2",
+    srcs = ["p2.cpp"],
+    hdrs = ["p2.hpp"],
+    copts = CXX_OPTS,
+    deps = [
+        ":util",
+        ":path",
+        ":maps",
+        ":sw_curve",
+        ":nets",
+    ]
+)
+
+cc_library(
     name = "local",
     srcs = ["local.cpp"],
     hdrs = ["local.hpp"],
@@ -304,6 +318,25 @@ cc_binary(
     ],
     deps = [
         ":coni",
+        ":util",
+    ]
+)
+
+cc_binary(
+    name = "p2_networks",
+    srcs = [
+        "p2_main.cpp",
+    ],
+    copts = CXX_OPTS,
+    linkopts = [
+        "-lginac",
+        "-lcln",
+        "-lflint",
+        "-larb",
+        "-v",
+    ],
+    deps = [
+        ":p2",
         ":util",
     ]
 )
