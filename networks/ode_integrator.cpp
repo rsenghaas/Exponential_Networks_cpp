@@ -22,6 +22,21 @@ auto ODE_euler_step(const std::shared_ptr<SW_curve> &curve,
   masses.push_back(masses.back() + compute_dm(v.back(), step_size * dv));
 }
 
+
+auto ODE_euler_step_prescribed(const std::shared_ptr<SW_curve> &curve,
+                    std::vector<state_type> &v, cplx dx, std::vector<double> &masses, bool with_newton) -> void {
+  state_type dv;
+  dv.at(kIndexX) = dx;
+  curve->sw_step_prescribed(v.back(), dv);
+  auto next_v = v.back() + dv;
+  if (with_newton) {
+    curve->newton_correction(next_v, 10, 0.05);
+  }
+  v.push_back(next_v);
+  masses.push_back(masses.back() + compute_dm(next_v, dv));
+}
+
+
 auto ODE_elliptic_euler_step(const std::shared_ptr<SW_curve> &curve,
                              std::vector<state_type> &v,
                              std::vector<double> &masses,
@@ -61,13 +76,15 @@ auto ODE_integrator::integrate_ode(double cutoff) -> void {
   auto stepper = make_controlled(kOdeAbsError, kOdeRelError,
                                  runge_kutta_cash_karp54<state_type>());
   uint32_t loop_counter = 0;
+  diff_.curve_->match_fiber(v0_);
   while (obs_.masses.back() < cutoff && obs_.states.size() < kMaxSteps) {
     if ((std::abs(v0_.at(kIndexX)) > kHighCutoffX ||
          std::abs(v0_.at(kIndexY1)) > kCutoffY ||
          std::abs(v0_.at(kIndexY2)) > kCutoffY ||
-         std::abs(v0_.at(kIndexX)) < kLowCutoffX ||
-         std::abs(v0_.at(kIndexY1) - v0_.at(kIndexY2)) < 1 / kCutoffY) &&
-        loop_counter > 3) {
+         std::abs(v0_.at(kIndexX)) < kLowCutoffX 
+         // || std::abs(v0_.at(kIndexY1) - v0_.at(kIndexY2)) < 1 / kCutoffY
+         ) &&
+        loop_counter > 5) {
       break;
     }
     std::cout << obs_.states.size() << std::endl;
@@ -75,7 +92,6 @@ auto ODE_integrator::integrate_ode(double cutoff) -> void {
                        kIntegraterStepSize, observer(obs_));
     // integrate_const(runge_kutta4<state_type>(), diff_, v0_, t0_, t0_ +
     // kInitialStepSize, kInitialStepSize, observer(obs_));
-    diff_.curve_->match_fiber(v0_);
     loop_counter++;
   }
 }

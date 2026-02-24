@@ -7,8 +7,13 @@
 
 constexpr cplx kQ_coni =  11.0 / 8.0 - 3.0 / 4.0 * J;
 
-auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
-  return -1 + y + x * y - complex_to_ex(kQ_coni) * GiNaC::pow(y, 2) * x;
+auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex { 
+  std::array<int32_t, 4> M = {1,2,0,3};
+  auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(1));
+  auto y_sub = GiNaC::pow(x, M.at(2)) * GiNaC::pow(y, M.at(3));
+  int f = 0;
+  x_sub = x_sub * GiNaC::pow(y_sub, f); 
+  return -1 + y_sub + x_sub - complex_to_ex(kQ_coni) * x_sub * y_sub;
 }
 
 auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
@@ -52,6 +57,16 @@ auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     spdlog::debug(F.str());
     return aug;
 }
+
+auto F_trefoil_generic(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+    int f = 0;
+    GiNaC::ex x_sub = x * pow(-y, f); 
+    auto a = complex_to_ex(1.0 + 1.0 * J);
+    auto b = complex_to_ex(1.0 + 1.0 * J);
+    auto c = complex_to_ex(1.0 + 1.0 * J); 
+    GiNaC::ex poly = (1 + a * x_sub * y + b * y / x_sub + y * y - c / (y * y)) * y * y * x;
+    return poly;
+} 
 
 auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     int f = -1;
@@ -287,4 +302,19 @@ auto Coni::custom_BPS_F() -> void {
     }
 }
 
-auto Coni::custom_BPS(double cutoff) -> void { custom_BPS_F();}
+auto Coni::custom_BPS(double cutoff) -> void {    
+    std::vector<size_t> inv = {};
+    for (size_t &k : inv) {
+        auto endpoint = new_paths_.at(k).get_endpoint();
+        invert_state(endpoint);
+        new_paths_.at(k).override_endpoint(endpoint);
+    }
+    initial_integration();
+    auto path_it = get_iterator_by_id(new_paths_, 0);
+    for (uint32_t k = 0; k < new_paths_.size(); k += 1){
+        path_it = get_iterator_by_id(new_paths_, k);
+        save_data(path_it->path_id_);
+        evolve_path(path_it, cutoff);
+        save_data(path_it->path_id_);
+    }
+}

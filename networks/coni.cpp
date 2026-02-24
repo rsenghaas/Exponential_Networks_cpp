@@ -5,10 +5,15 @@
 #include "ginac_util.hpp"
 #include "type_util.hpp"
 
-constexpr cplx kQ_coni =  11.0 / 8.0 - 3.0 / 4.0 * J;
+constexpr cplx kQ_coni =  1.0 / (9.0 / 8.0 - 2.0 / 4.0 * J);
 
-auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
-  return -1 + y + x * y - complex_to_ex(kQ_coni) * GiNaC::pow(y, 2) * x;
+auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex { 
+  std::array<int32_t, 4> M = {1,1,0,1};
+  auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(1));
+  auto y_sub = GiNaC::pow(x, M.at(2)) * GiNaC::pow(y, M.at(3));
+  int f = 0;
+  x_sub = x_sub * GiNaC::pow(y_sub, f); 
+  return 1 + x_sub + y_sub + complex_to_ex(kQ_coni) * x_sub * y_sub;
 }
 
 auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
@@ -53,6 +58,40 @@ auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     return aug;
 }
 
+auto A_super_3_1(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex 
+{
+    int f = -1;
+    auto t = complex_to_ex(-1);
+    auto a = complex_to_ex(kQ_coni);
+    auto x_sub = y * GiNaC::pow(-x, f);
+    auto y_sub = x;
+
+    auto Poly = GiNaC::pow(a, 2) * GiNaC::pow(t, 4) * (x_sub - 1) 
+        * GiNaC::pow(x_sub,3) 
+    - a * (1 - GiNaC::pow(t,2) * x_sub
+            + 2 * GiNaC::pow(t, 2) * (1 + a * t) * x_sub * x_sub 
+            + a * GiNaC::pow(t,5) * GiNaC::pow(x_sub,3) 
+            + GiNaC::pow(a,2) * GiNaC::pow(t,6) 
+            * GiNaC::pow(x_sub,4) ) * y_sub
+    + (1 + a * GiNaC::pow(t,3) * x_sub) * GiNaC::pow(y_sub,2);
+    return Poly * GiNaC::pow(y_sub, 3);
+}
+
+auto F_trefoil_generic(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
+    std::array<int32_t, 4> M = {1, 0,-1,1};
+    auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
+    auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
+    auto Q = complex_to_ex(kQ_coni);
+    auto poly = 
+       1 - x_sub - y_sub + x_sub * y_sub - 2 * x_sub * GiNaC::pow(y_sub,2) 
+       + 1.999995 * Q * x_sub * GiNaC::pow(y_sub,2) 
+       + Q * x_sub * GiNaC::pow(y_sub,3)
+       - GiNaC::pow(x_sub,2) * GiNaC::pow(y_sub,3) 
+       - Q * Q * x_sub * GiNaC::pow(y_sub,4) 
+       + Q * GiNaC::pow(x_sub,2) * GiNaC::pow(y_sub,4);
+    return (poly * y).expand();
+} 
+
 auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     int f = -1;
     auto coni_ex = complex_to_ex(kQ_coni);
@@ -93,9 +132,17 @@ auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
 }
 
 auto H_trefoil(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
-  return GiNaC::pow(y, 2) * GiNaC::pow(y - 1, 3) -
-         x * (y - complex_to_ex(kQ_coni)) * (y - complex_to_ex(kQ_coni)) *
-             (y - complex_to_ex(kQ_coni));
+    std::array<int32_t, 4> M = {1, 0,0,1};
+    auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
+    auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
+    auto Q = complex_to_ex(kQ_coni);
+    auto poly = 
+        1 - Q * y 
+        + x * GiNaC::pow(y, 3) * (1 - y + 2 * GiNaC::pow(y,2) 
+                - 2 * Q * GiNaC::pow(y,3) + GiNaC::pow(Q,2) * GiNaC::pow(y,4)) 
+        - GiNaC::pow(x,2) * GiNaC::pow(y,9) * (1 - y);
+    return poly;
+
 }
 
 auto F_fig_8(const GiNaC::symbol& y, const GiNaC::symbol& x) -> GiNaC::ex {
@@ -287,4 +334,93 @@ auto Coni::custom_BPS_F() -> void {
     }
 }
 
-auto Coni::custom_BPS(double cutoff) -> void { custom_BPS_F();}
+auto Coni::evolve_all(double cutoff) -> void { 
+    std::vector<size_t> inv = {}; //{2,8, 9,12,16,20,21};
+    for (size_t &k : inv) {
+        auto endpoint = new_paths_.at(k).get_endpoint();
+        invert_state(endpoint);
+        new_paths_.at(k).override_endpoint(endpoint);
+    }
+    initial_integration();
+    auto path_it = get_iterator_by_id(new_paths_, 0);
+    uint32_t k = 0;
+    for ( ;k < new_paths_.size(); k += 1){
+        path_it = get_iterator_by_id(new_paths_, k);
+        save_data(path_it->path_id_);
+        evolve_path(path_it, cutoff);
+        path_it->truncate_mass(cutoff);
+        path_it->truncate_x(10);
+        save_data(path_it->path_id_);
+    }
+    uint32_t k0 = 0;
+    for (uint32_t l = 0; l < 4; l++) {
+        for (uint32_t m = 12; m < k; m += 1){
+            for (uint32_t n = m + 1; n < k; n += 1){
+                if (n >= k0) {
+                    for (uint32_t q = 0; q < 2; q++) {
+                        two_path_intersection_handler(m, n, false, false, 2, q, true, false);
+                    }
+                }
+            }
+        }
+        k0 = k;
+        for ( ;k < new_paths_.size(); k += 1) {
+            path_it = get_iterator_by_id(new_paths_, k);
+            save_data(path_it->path_id_);
+            evolve_path(path_it, cutoff);
+            path_it->truncate_mass(cutoff);
+            path_it->truncate_x(10);
+            save_data(path_it->path_id_);
+        }
+    }
+}
+
+auto Coni::custom_BPS(double cutoff) -> void { 
+    evolve_all(cutoff);
+}
+
+/*
+    // evolve_all(cutoff);
+    cplx x = 15.5;
+    auto fib = curve_->get_fiber(x);
+    auto k = new_paths_.size();
+    for(size_t j = 0;  j < fib.size(); ++j) {
+        auto y = fib.at(j);
+        state_type v = {x, std::log(y), std::log(y) + 2 * pi * J};
+        add_new_path(v);
+        auto path_it = get_iterator_by_id(new_paths_, k);
+        evolve_path(path_it, cutoff);
+        path_it->truncate_mass(4*pi*pi + 0.1);
+        save_data(k);
+        k++;
+        auto target = std::exp(path_it->get_endpoint().at(kIndexY1));
+        size_t nearest_idx = 0;
+        double min_dist = std::numeric_limits<double>::max();
+        for (size_t i = 0; i < fib.size(); ++i) {
+            double dist = std::abs(fib.at(i)- target); // Euclidean distance in complex plane
+            if (dist < min_dist) {
+                min_dist = dist;
+                nearest_idx = i;
+            }
+        }
+        spdlog::debug("Sheet {} -> Sheet {}.", j, nearest_idx);
+        spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                j, 
+                complex_to_string(target), 
+                nearest_idx, 
+                complex_to_string(fib.at(nearest_idx))
+            );
+    }
+    state_type v = {x, std::log(fib.at(1)), std::log(fib.at(2))};
+    add_new_path(v);
+    auto path_it = get_iterator_by_id(new_paths_, k);
+    evolve_path(path_it, cutoff);
+    save_data(k);
+    k++;
+
+    for(auto &y : fib) {
+        std:: cout << complex_to_string(std::log(y)) << " ";
+    }
+    std::cout << std::endl;
+}
+*/

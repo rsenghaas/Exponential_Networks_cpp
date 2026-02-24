@@ -82,9 +82,12 @@
               stdenv.cc
               bazel
               boost
+              zsh
             ];
 
             enterShell = ''
+              export SHELL=${pkgs.zsh}/bin/zsh
+              exec ${pkgs.zsh}/bin/zsh
               alias ls='ls --color=auto'
             '';
             })

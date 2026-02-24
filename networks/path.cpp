@@ -37,10 +37,19 @@ auto Path::get_endpoint() -> state_type { return v_.back(); }
 auto Path::append_data(std::vector<state_type>& v, std::vector<double>& masses)
     -> void {
   spdlog::debug("Path {} was integrated with {} steps.", path_id_, v.size());
-  double current_mass = masses_.back();
-  std::transform(masses.begin(), masses.end(), masses.begin(),
+  if (masses_.size() > 0) {
+    double current_mass = masses_.back();
+    spdlog::debug("Current mass is: {}", current_mass);
+
+    std::transform(masses.begin(), masses.end(), masses.begin(),
                  [&](double m) { return m + current_mass; });
-  masses_.insert(masses_.end(), ++masses.begin(), masses.end());
+     masses_.insert(masses_.end(), ++masses.begin(), masses.end());
+  }
+  else {
+    masses_ = masses;
+  }
+  spdlog::debug("First mass is {}", masses_.at(0));
+  spdlog::debug("The path has initial mass {}.", masses_.back());
   v_.insert(v_.end(), ++v.begin(), v.end());
 }
 
@@ -196,6 +205,9 @@ auto Path::override_endpoint(state_type& v) -> void {
 auto Path::get_point(uint32_t t) -> state_type { return v_.at(t); }
 
 auto Path::truncate(uint32_t t_start, uint32_t t_end) -> void {
+  if (t_end == t_start) {
+      t_end += 1;
+  }
   if (t_end <= t_start) {
     spdlog::debug("End time greater than start time. Skip truncation.");
     return;
@@ -208,12 +220,28 @@ auto Path::truncate(uint32_t t_start, uint32_t t_end) -> void {
   masses_.erase(masses_.begin() + t_end, masses_.end());
   v_.erase(v_.begin(), v_.begin() + t_start);
   masses_.erase(masses_.begin(), masses_.begin() + t_start);
-  double m0 = masses_.front();
-  for (auto& mass : masses_) {
-    mass -= m0;
-  }
   print_state_type(v_.at(0));
   spdlog::debug("Done erasing.");
+}
+
+auto Path::truncate_mass(double mass) -> void {
+    for(size_t k = 0; k < masses_.size(); k++) {
+        if (masses_.at(k) > mass) {
+            truncate(0, k);
+            break;
+        }
+    }
+    return;
+}
+
+auto Path::truncate_x(double r) -> void {
+    for(size_t k = 0; k < masses_.size(); k++) {
+        if (std::abs(v_.at(k).at(kIndexX)) > r) {
+            truncate(0, k);
+            break;
+        }
+    }
+    return;
 }
 
 auto Path::add_single_point(state_type pt) -> void {

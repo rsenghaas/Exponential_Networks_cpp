@@ -1,0 +1,23 @@
+file_a,file_b,arc_fraction
+data/path_data/path_data_105.csv,data/path_data/path_data_67.csv,1.0 12
+data/path_data/path_data_108.csv,data/path_data/path_data_67.csv,1.0 13
+data/path_data/path_data_109.csv,data/path_data/path_data_61.csv,1.0 10
+data/path_data/path_data_113.csv,data/path_data/path_data_61.csv,1.0 11
+data/path_data/path_data_12.csv,data/path_data/path_data_57.csv,1.0 0
+data/path_data/path_data_12.csv,data/path_data/path_data_65.csv,1.0 1
+data/path_data/path_data_15.csv,data/path_data/path_data_59.csv,1.0 2
+data/path_data/path_data_15.csv,data/path_data/path_data_68.csv,1.0 14
+data/path_data/path_data_20.csv,data/path_data/path_data_56.csv,1.0 3
+data/path_data/path_data_20.csv,data/path_data/path_data_64.csv,1.0 4
+data/path_data/path_data_23.csv,data/path_data/path_data_36.csv,1.0 0
+data/path_data/path_data_22.csv,data/path_data/path_data_74.csv,1.0 8
+data/path_data/path_data_24.csv,data/path_data/path_data_91.csv,1.0 9
+data/path_data/path_data_25.csv,data/path_data/path_data_51.csv,1.0 14
+data/path_data/path_data_29.csv,data/path_data/path_data_58.csv,0.99 16
+data/path_data/path_data_29.csv,data/path_data/path_data_66.csv,0.96 5
+data/path_data/path_data_46.csv,data/path_data/path_data_67.csv,1.0 6
+data/path_data/path_data_47.csv,data/path_data/path_data_61.csv,0.99 8
+data/path_data/path_data_53.csv,data/path_data/path_data_61.csv,1.0 7
+data/path_data/path_data_54.csv,data/path_data/path_data_67.csv,1.0 9
+data/path_data/path_data_61.csv,data/path_data/path_data_70.csv,1.0 17
+data/path_data/path_data_67.csv,data/path_data/path_data_83.csv,1.0

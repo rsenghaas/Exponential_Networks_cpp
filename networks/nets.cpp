@@ -58,6 +58,7 @@ auto Network::start_paths() -> void {
     cplx y = r_it->at(kIndexY);
 
     spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),complex_to_string(std::log(y)));
+    spdlog::debug("Exponentiated y = {}.", complex_to_string(y));
 
     state_type start_state;
     start_state.at(kIndexX) = b;
@@ -158,7 +159,7 @@ auto Network::initial_integration() -> void {
       std::vector<double> masses{path.get_endmass()};
       for (uint32_t i = 0; i < kInitialSteps; i++) {
         ODE_runge_kutta_step(curve_, v, masses, step_size, theta_);
-        if (i % 10 == 0) {
+        if (i % 50 == 0) {
             auto next_state = v.back();
             curve_->match_fiber(next_state);
             // determine_sign(*curve_, v.at(v.size() - 2), next_state);
@@ -188,6 +189,21 @@ auto Network::add_new_path(state_type start_point) -> void {
   new_paths_.push_back(std::move(path));
   next_id_++;
 }
+
+auto Network::add_new_path_with_mass(state_type start_point, double mass) -> void {
+    std::vector<state_type> v;
+    v.push_back(start_point);
+
+    std::vector<double> masses;
+    masses.push_back(mass);
+    
+    spdlog::debug("Path mass is {}", masses.back());
+
+    Path path(v, masses, next_id_);
+    new_paths_.push_back(std::move(path));
+    next_id_++;
+}
+
 
 auto Network::save_data(uint32_t id) -> void {
   auto path_it = get_iterator_by_id(new_paths_, id);
@@ -261,11 +277,41 @@ auto Network::two_path_intersections(std::vector<Path>::iterator path_A_it,
   return two_path_map.get_intersections(path_B_map.pp_vec);
 }
 
+/* auto Network::multiplicity_intersection(uint32_t id_A, uint32_t id_B, bool truncate_A, bool, truncate_B, uint32_t n_a, uint32_t n_B, uint32_t intersection_number) -> void {
+    auto path_A_it = get_iterator_by_id(new_paths_, id_A);
+    auto path_B_it = get_iterator_by_id(new_paths_, id_B);
+
+    auto inter_it = intersections.begin();
+    auto inter_it = intersections.begin();
+    if (inter_it == intersections.end()) {
+        return;
+    }
+    if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
+        inter_it++;
+        if(inter_it == intersections.end()) {
+            return;
+        }
+     }
+    for(uint32_t k = 0; k < intersection_number; k++) {
+        inter_it++;
+      if(inter_it == intersections.end()) {
+          return;
+      }
+    }
+    state_type next_state;
+    if (compute_intersection_points(*inter_it, path_A_it, path_B_it, n,
+                                  next_state)) {
+    }
+} */
+
+
 auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
                                             bool truncate_A, bool truncate_B,
                                             int32_t n,
                                             uint32_t intersection_number,
                                             bool shift, bool swap) -> void {
+  std::ofstream file("data/intersection_data/database.csv", std::ios::app); 
+
   auto path_A_it = get_iterator_by_id(new_paths_, id_A);
   auto path_B_it = get_iterator_by_id(new_paths_, id_B);
   if (id_A > id_B) {
@@ -276,23 +322,29 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
       two_path_intersections(path_A_it, path_B_it);
   auto inter_it = intersections.begin();
   if (inter_it == intersections.end()) {
+    file.close();
     return;
   }
   if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
     inter_it++;
     if(inter_it == intersections.end()) {
+        file.close();
         return;
     }
   }
   for(uint32_t k = 0; k < intersection_number; k++) {
       inter_it++;
       if(inter_it == intersections.end()) {
+          file.close();
           return;
       }
   }
   print_intersection(*inter_it);
   state_type pt_A =
       path_A_it->get_point(inter_it->times.at(0).at(kIndexStartTime));
+  double mass_A = path_A_it->get_mass(inter_it->times.at(0).at(kIndexStartTime));
+  double mass_B = path_B_it->get_mass(inter_it->times.at(1).at(kIndexStartTime));
+  spdlog::debug("Base mass is {}", mass_A + mass_B);
   int32_t state_A_k = get_log_sheet(pt_A);
   spdlog::debug("Path_A has k {}", state_A_k);
   state_type pt_B =
@@ -304,16 +356,16 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
   if (compute_intersection_points(*inter_it, path_A_it, path_B_it, n,
                                   next_state)) {
     spdlog::debug("Two path intersection.");
-    if (id_A == 2 && inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) >
+    /* if (id_A == 2 && inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) >
                          path_2_endtime_) {
       path_2_end_partner_ = id_B;
       path_2_endtime_ = inter_it->times.at(kIndexFirstPath).at(kIndexEndTime);
     }
-    if (id_B == 2 && inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) >
+    if (id_B == 2 && inter_it->times.at2(kIndexSecondPath).at(kIndexEndTime) >
                          path_2_endtime_) {
       path_2_end_partner_ = id_A;
       path_2_endtime_ = inter_it->times.at(kIndexSecondPath).at(kIndexEndTime);
-    }
+    } */
 
     if (truncate_A) {
       path_A_it->truncate(
@@ -331,7 +383,212 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
       curve_->match_fiber(endpoint);
       path_B_it->add_single_point(endpoint);
     }
-    if (shift) {
+    if (std::abs(std::exp(next_state.at(kIndexY1)) 
+        - std::exp(next_state.at(kIndexY2))) < kFiberCompTolerance) {
+            
+            spdlog::debug("(ii) type intersection found");
+            if(state_is_trivial(next_state)) {
+                std::cout << "trivial" << std::endl;
+                file.close();
+                return; 
+            }
+            print_state_type(next_state);
+
+            auto shift_state = path_A_it->get_point(
+                inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
+            auto shift_state_B = path_B_it->get_point(
+                inter_it->times.at(kIndexSecondPath).at(kIndexStartTime));
+            shift_state.at(kIndexX) = next_state.at(kIndexX);
+            curve_->match_fiber(shift_state);
+    
+            shift_state_B.at(kIndexX) = next_state.at(kIndexX);
+            curve_->match_fiber(shift_state);
+            if (shift || n == 0) {
+                if(std::abs(std::exp(shift_state.at(kIndexY1)) - std::exp(next_state.at(kIndexY1)))
+                    < kFiberCompTolerance) {
+                    shift_state.at(kIndexY1) += shift_state_B.at(kIndexY1) - shift_state_B.at(kIndexY2);
+                }
+                else {
+                    shift_state.at(kIndexY2) += shift_state_B.at(kIndexY2) - shift_state_B.at(kIndexY1);
+                }   
+                add_new_path_with_mass(next_state, mass_A + mass_B);
+                file 
+                    << new_paths_.size() - 1 << "," 
+                    << id_A << "," 
+                    << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                    << id_B << "," 
+                    << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+
+                add_new_path_with_mass(shift_state, mass_A + mass_B);
+                file 
+                    << new_paths_.size() - 1 << "," 
+                    << id_A << "," 
+                    << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                    << id_B << "," 
+                    << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+            }
+            if ( n == 0 ) {
+                return;
+            }
+            if(shift) {
+                n = std::abs(n);
+                if(std::abs(std::exp(shift_state.at(kIndexY1)) - std::exp(next_state.at(kIndexY2)))
+                    < kFiberCompTolerance) {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state.at(kIndexY1) += next_state.at(kIndexY1) - next_state.at(kIndexY2);
+                        add_new_path_with_mass(shift_state, i*(mass_A + mass_B) + mass_A);
+                    file 
+                        << new_paths_.size() - 1 << "," 
+                        << id_A << "," 
+                        << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                        << id_B << "," 
+                        << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+
+                    }
+                }
+                else {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state.at(kIndexY2) += next_state.at(kIndexY2) - next_state.at(kIndexY1);
+                        add_new_path_with_mass(shift_state, i*(mass_A + mass_B) + mass_A);
+                        file 
+                        << new_paths_.size() - 1 << "," 
+                        << id_A << "," 
+                        << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                        << id_B << "," 
+                        << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    }
+                }
+                if(std::abs(std::exp(shift_state_B.at(kIndexY1)) - std::exp(next_state.at(kIndexY2)))
+                    < kFiberCompTolerance) {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state_B.at(kIndexY1) += next_state.at(kIndexY1) - next_state.at(kIndexY2);
+                        add_new_path_with_mass(shift_state_B, i*(mass_A + mass_B) + mass_B);
+                        file 
+                        << new_paths_.size() - 1 << "," 
+                        << id_A << "," 
+                        << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                        << id_B << "," 
+                        << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    }
+                }
+                else {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state_B.at(kIndexY2) += next_state.at(kIndexY2) - next_state.at(kIndexY1);
+                        add_new_path_with_mass(shift_state_B, i*(mass_A + mass_B) + mass_B);
+                        file 
+                        << new_paths_.size() - 1 << "," 
+                        << id_A << "," 
+                        << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                        << id_B << "," 
+                        << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    }
+                }
+            }
+            else {
+                state_type shift_state;
+                double mass0 = 0;
+                if (n > 0) {
+                    mass0 = mass_A;
+                }
+                if (n < 0) {
+                    shift_state =shift_state_B;
+                    mass0 = mass_B;
+                }
+                curve_->match_fiber(shift_state);
+                n = std::abs(n);
+                if(std::abs(std::exp(shift_state.at(kIndexY1)) - std::exp(next_state.at(kIndexY2)))
+                    < kFiberCompTolerance) {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state.at(kIndexY1) += next_state.at(kIndexY1) - next_state.at(kIndexY2);
+                    }
+                }
+                else {
+                    for(int32_t i = 1; i <= n; i++) {
+                        shift_state.at(kIndexY2) += next_state.at(kIndexY2) - next_state.at(kIndexY1);
+                    }
+                }
+                add_new_path_with_mass(shift_state, n*(mass_A + mass_B) + mass0);
+                file 
+                    << new_paths_.size() - 1 << "," 
+                    << id_A << "," 
+                    << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                    << id_B << "," 
+                    << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+
+            }
+    }
+    else { 
+            auto shift_state = path_A_it->get_point(
+                inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
+            auto shift_state_B = path_B_it->get_point(
+                inter_it->times.at(kIndexSecondPath).at(kIndexStartTime));
+            shift_state.at(kIndexX) = next_state.at(kIndexX);
+        if ((std::abs(std::exp(shift_state_B.at(kIndexY1)) 
+            - std::exp(shift_state_B.at(kIndexY2))) < kFiberCompTolerance)) {
+                    for(int32_t i = 1; i <= std::abs(n); i++) {
+                        shift_state.at(kIndexY1) += shift_state_B.at(kIndexY1) - shift_state_B.at(kIndexY2);
+                        if(shift) {
+                        add_new_path_with_mass(shift_state, i*(mass_A + mass_B) + mass_A);
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                        }
+                    }
+                    if(!shift) {
+                        add_new_path_with_mass(shift_state, n*(mass_A + mass_B) + mass_A);
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    }
+        } else  if(std::abs(std::exp(shift_state.at(kIndexY1)) 
+            - std::exp(shift_state.at(kIndexY2))) < kFiberCompTolerance) {
+                    for(int32_t i = 1; i <= std::abs(n); i++) {
+                        shift_state_B.at(kIndexY1) += shift_state.at(kIndexY1) - shift_state.at(kIndexY2);
+                        if(shift) {
+                        add_new_path_with_mass(shift_state_B, i*(mass_A + mass_B) + mass_B);
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                        }
+                    }
+                    if(!shift) {
+                        add_new_path_with_mass(shift_state_B, n*(mass_A + mass_B) + mass_B);
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    }        
+            } else {
+            if(state_is_trivial(next_state)) {
+                std::cout << "trivial" << std::endl;
+                file.close();
+                return; 
+            }
+            print_state_type(next_state);
+            add_new_path_with_mass(next_state, mass_A + mass_B);
+            file 
+                << new_paths_.size() - 1 << "," 
+                << id_A << "," 
+                << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                << id_B << "," 
+                << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+            file.close();
+            return;
+        }
+    }
+    file.close();
+    /* if (shift) {
       auto shift_path_it = get_iterator_by_id(new_paths_, id_A);
       state_type shift_state = shift_path_it->get_point(
           inter_it->times.at(kIndexFirstPath).at(kIndexStartTime));
@@ -357,7 +614,7 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
       }
       print_state_type(next_state);
       add_new_path(next_state);
-    }
+    } */
   }
 }
 
@@ -390,19 +647,18 @@ auto Network::intersect_states(state_type state_A, state_type state_B,
   if (std::abs(std::exp(state_A.at(kIndexY1)) -
                std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
     new_state.at(kIndexX) = state_A.at(kIndexX);
-    new_state.at(kIndexY1) = state_B.at(kIndexY1) 
-        + J *  state_A.at(kIndexY1).imag() - J*  state_B.at(kIndexY2).imag();
+    new_state.at(kIndexY1) = state_B.at(kIndexY1) + state_A.at(kIndexY1) - state_B.at(kIndexY2);
     new_state.at(kIndexY2) = state_A.at(kIndexY2);
     return true;
   }
   if (std::abs(std::exp(state_A.at(kIndexY2)) -
                std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
     new_state.at(kIndexX) = state_A.at(kIndexX);
-    new_state.at(kIndexY1) = state_A.at(kIndexY1) - J * state_A.at(kIndexY2).imag() + J* state_B.at(kIndexY1).imag();
+    new_state.at(kIndexY1) = state_A.at(kIndexY1) - state_A.at(kIndexY2) + state_B.at(kIndexY1);
     new_state.at(kIndexY2) = state_B.at(kIndexY2);
     return true;
   }
-  if (std::abs(std::exp(state_A.at(kIndexY1)) -
+  /* if (std::abs(std::exp(state_A.at(kIndexY1)) -
                std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance &&
       std::abs(std::exp(state_A.at(kIndexY2)) -
                std::exp(state_B.at(kIndexY2))) < kFiberCompTolerance) {
@@ -410,7 +666,7 @@ auto Network::intersect_states(state_type state_A, state_type state_B,
     new_state.at(kIndexY1) = state_A.at(kIndexY1);
     new_state.at(kIndexY2) = state_B.at(kIndexY1);
     return true;
-  }
+  } */
 
   /*if (std::abs(std::exp(state_A.at(kIndexY1)) -
                std::exp(state_B.at(kIndexY1))) < kFiberCompTolerance) {
@@ -487,7 +743,6 @@ auto Network::compute_intersection_points(intersection& inter,
         curve_->match_fiber(state_A);
         curve_->match_fiber(state_B);
         if (intersect_states(state_A, state_B, new_state)) {
-          new_state.at(kIndexY1) += 2 * pi * J * static_cast<double>(n);
           spdlog::debug("Return state!");
           if (std::abs(new_state.at(kIndexY1) - new_state.at(kIndexY2)) < 1e-25) {
               return false;
@@ -847,36 +1102,98 @@ auto Network::print_ramification_points() -> void {
   }
 }
 
-auto Network::draw_circle(state_type &v, cplx center) -> std::vector<state_type> {
+auto Network::draw_circle(state_type &v, cplx center, std::vector<double> &masses) -> std::vector<state_type> {
+    spdlog::debug("Drawing");
     cplx radius = v.at(kIndexX) - center;
     std::vector<state_type> circle;
     circle.push_back(v);
     for(int i = 0; i <  501; i++) {
-        v.at(kIndexX) = center + radius * std::exp(2 * pi * J * static_cast<double>(i) / 500.0);
-        curve_->match_fiber(v);
-        circle.push_back(v);
+        v.at(kIndexX) = center + radius * std::exp(2 * pi * J * static_cast<double>(i) / 500.0); 
+        auto dx = v.at(kIndexX) - circle.back().at(kIndexX);
+        ODE_euler_step_prescribed(curve_, circle, dx, masses, false);
     }
     return circle;
 }
 
-auto Network::draw_straight(state_type &v, cplx x_end) -> std::vector<state_type> {
-    std::vector<state_type> circle;
+auto Network::draw_straight(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses) -> void {
+    auto x_start = line.back().at(kIndexX);
+    uint32_t segments = 3000;
+    for(uint32_t i = 1; i < segments; i++) {
+        cplx x = (1 - 1.0 * i / segments) * x_start + 1.0 * i / segments * x_end;
+        auto dx = x - line.back().at(kIndexX);
+        ODE_euler_step_prescribed(curve_, line, dx , masses, false);
+    }
+    return;
+}
+
+auto Network::draw_arc(state_type &v, cplx x_end, std::vector<double> &masses, int32_t winding) -> std::vector<state_type> {
+    std::vector<state_type> line;
     cplx x_start = v.at(kIndexX);
-    circle.push_back(v);
-    for(uint32_t i = 0; i <  501; i++) {
-        v.at(kIndexX) = ((1 - 1.0 * i / 500.0) * std::abs(x_start) + 1.0 * i / 500.0 * std::abs(x_end))
-            * std::exp((std::arg(x_start) * (1 - 1.0 * i / 500.0) +
-                    std::arg(x_end) * 1.0 * i / 500.0) * J);
-        curve_->match_fiber(v);
-        circle.push_back(v);
+    line.push_back(v);
+    uint32_t segments = 5000;
+    for(uint32_t i = 1; i <= segments; i++) {
+        v.at(kIndexX) = std::pow(x_start,(1 - 1.0 * i / segments)) * std::pow(x_end, 1.0 * i / segments) 
+            * std::exp((2.0 * winding)*  pi * J * (1.0 * i / segments));
+        auto dx = v.at(kIndexX) - line.back().at(kIndexX);
+        ODE_euler_step_prescribed(curve_, line, dx, masses, false);
     }
-    return circle;
+    return line;
 }
 
-auto Network::probe_curve() -> void { // initial_integration();
-    cplx x0 = 5e-3;
+
+auto find_nearest(cplx target, const std::vector<cplx> &fiber) -> uint32_t {
+    size_t nearest_idx = 0;
+    double min_dist = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < fiber.size(); ++i) {
+            double dist = std::abs(fiber.at(i) - target); // Euclidean distance in complex plane
+            if (dist < min_dist) {
+                min_dist = dist;
+                nearest_idx = i;
+            }
+    }
+    return nearest_idx;
+}
+
+auto Network::encircle_points(state_type v, const std::vector<cplx> &way_points, std::vector<double> &masses, cplx offset) -> std::vector<state_type> {
+    auto x_start = v.at(kIndexX);
+    std::vector<state_type> line;
+    line.push_back(v);
+    uint32_t segments = 2000;
+        
+    for(auto& pt : way_points) {
+        draw_straight(line, pt + offset, masses);
+    }
+    
+    cplx x1 = way_points.back();
+    for(int i = 0; i <  1001; i++) {
+        v.at(kIndexX) = x1 + offset * std::exp(2 * pi * J * static_cast<double>(i) / 1000.0); 
+        auto dx = v.at(kIndexX) - line.back().at(kIndexX);
+        for(size_t s = 0; s < 10; s++) {
+            ODE_euler_step_prescribed(curve_, line, dx / 10.0, masses, true);
+        }
+    }
+    
+    for (auto it = way_points.rbegin() + 1; it != way_points.rend(); ++it) {
+        draw_straight(line, *it + offset, masses);
+    }
+    draw_straight(line, x_start, masses);
+    
+    for(int i = 0; i <  1001; i++) {
+        cplx x = (x_start - offset) + offset * std::exp(2 * pi * J * static_cast<double>(i) / 1000.0); 
+        auto dx = x - line.back().at(kIndexX);
+        for(size_t s = 0; s < 10; s++) {
+            ODE_euler_step_prescribed(curve_, line, dx / 10.0, masses, true);
+        }
+    }
+
+    return line;
+}
+
+auto Network::circle_probe(const cplx &x0) -> void {
+    spdlog::debug("Making a circle paths");
     state_type v;
     auto fiber = curve_->get_fiber(x0);
+    size_t j = 0;
     for(auto it = fiber.begin(); it != fiber.end(); it++) {
         v.at(kIndexX) = x0;
         v.at(kIndexY1) = std::log(*it);
@@ -886,66 +1203,58 @@ auto Network::probe_curve() -> void { // initial_integration();
         }
         v.at(kIndexY2) = std::log(*it);
         print_state_type(v);
-        auto circ = draw_circle(v, 0);
         std::vector<double> circ_masses;
-        circ_masses.assign(circ.size(), 0);
+        circ_masses.push_back(0);
+        auto circ = draw_circle(v, 0, circ_masses);
         uint32_t index = new_paths_.size();
+
         Path circ_path(circ, circ_masses, index);
+        std::cout << circ.size() << " " << circ_masses.size();
+        spdlog::debug("Path created");
         new_paths_.push_back(circ_path);
-        save_data(index);
+        spdlog::debug("Path appended");
+        auto path_it = new_paths_.end() - 1;
+        path_it->save_data();
+        spdlog::debug("Path saved");
+        auto endpoint = path_it->get_endpoint();
+        auto target = std::exp(endpoint.at(kIndexY1));
+        auto target_2 = std::exp(endpoint.at(kIndexY2));
+        size_t nearest_idx = find_nearest(target, fiber);
+        size_t nearest_idx_2 = find_nearest(target_2, fiber);
+
+        spdlog::debug("Sheet {} -> Sheet {}.", j, nearest_idx);
+        spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                j, 
+                complex_to_string(target), 
+                nearest_idx, 
+                complex_to_string(fiber.at(nearest_idx))
+        );
+        spdlog::debug("Sheet {} -> Sheet {}.", j + 1, nearest_idx_2);
+        spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                j + 1, 
+                complex_to_string(target_2), 
+                nearest_idx_2, 
+                complex_to_string(fiber.at(nearest_idx_2))
+        ) ;
         if(it == fiber.begin()) {
             break;
         }
+        j += 2;
     }
-    for(auto& r : ramification_points_) {
-        auto x_end = r.at(kIndexX);
-        for(auto it = fiber.begin(); it != fiber.end(); it++) {
-            v.at(kIndexX) = x0;
-            v.at(kIndexY1) = std::log(*it);
-            it++;
-            if(it == fiber.end()) {
-                it = fiber.begin();
-            }
-            v.at(kIndexY2) = std::log(*it);
-            print_state_type(v);
-            auto straight = draw_straight(v, x_end);
-            std::vector<double> straight_masses;
-            straight_masses.assign(straight.size(), 0);
-            uint32_t index = new_paths_.size();
-            Path straight_path(straight, straight_masses, index);
-            new_paths_.push_back(straight_path);
-            save_data(index);
-            if(it == fiber.begin()) {
-                break;
-            }
-        }
-    }
-    cplx x_infty = 4.0;
+}
 
-    for(auto it = fiber.begin(); it != fiber.end(); it++) {
-            v.at(kIndexX) = x0;
-            v.at(kIndexY1) = std::log(*it);
-            it++;
-            if(it == fiber.end()) {
-                it = fiber.begin();
-            }
-            v.at(kIndexY2) = std::log(*it);
-            print_state_type(v);
-            auto straight = draw_straight(v, x_infty);
-            std::vector<double> straight_masses;
-            straight_masses.assign(straight.size(), 0);
-            uint32_t index = new_paths_.size();
-            Path straight_path(straight, straight_masses, index);
-            new_paths_.push_back(straight_path);
-            save_data(index);
-            if(it == fiber.begin()) {
-                break;
-            }
+auto Network::encircle_probe(const cplx &x0, const cplx &x1) -> void {
+    spdlog::debug("Encircling points");
+    double radius = 2e-1;
+    state_type v;
+    cplx offset = radius *(x0 - x1) / std::abs(x0 - x1) * J;
+    auto fiber = curve_->get_fiber(x0 + offset);
+    for(auto &f : fiber) {
+        spdlog::debug("Fiber value: {}", complex_to_string(f));
     }
-    fiber = curve_->get_fiber(x_infty);
-
+    size_t j = 0;
     for(auto it = fiber.begin(); it != fiber.end(); it++) {
-        v.at(kIndexX) = x_infty;
+        v.at(kIndexX) = x0 + offset;
         v.at(kIndexY1) = std::log(*it);
         it++;
         if(it == fiber.end()) {
@@ -953,21 +1262,57 @@ auto Network::probe_curve() -> void { // initial_integration();
         }
         v.at(kIndexY2) = std::log(*it);
         print_state_type(v);
-        auto circ = draw_circle(v, 0);
         std::vector<double> circ_masses;
-        circ_masses.assign(circ.size(), 0);
+        circ_masses.push_back(0);
+        std::vector<cplx> way_points = {0.8 + 0.3 * J, 2.0 + 0.5 * J, x1};
+        auto circ = encircle_points(v, way_points, circ_masses, offset);
         uint32_t index = new_paths_.size();
+
         Path circ_path(circ, circ_masses, index);
+        std::cout << circ.size() << " " << circ_masses.size();
+        spdlog::debug("Path created");
         new_paths_.push_back(circ_path);
-        save_data(index);
+        spdlog::debug("Path appended");
+        auto path_it = new_paths_.end() - 1;
+        path_it->save_data();
+        spdlog::debug("Path saved");
+        auto endpoint = path_it->get_endpoint();
+        auto target = std::exp(endpoint.at(kIndexY1));
+        auto target_2 = std::exp(endpoint.at(kIndexY2));
+        size_t nearest_idx = find_nearest(target, fiber);
+        size_t nearest_idx_2 = find_nearest(target_2, fiber);
+
+        spdlog::debug("Sheet {} -> Sheet {}.", j, nearest_idx);
+        spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                j, 
+                complex_to_string(target), 
+                nearest_idx, 
+                complex_to_string(fiber.at(nearest_idx))
+        );
+        spdlog::debug("Sheet {} -> Sheet {}.", j + 1, nearest_idx_2);
+        spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                j + 1, 
+                complex_to_string(target_2), 
+                nearest_idx_2, 
+                complex_to_string(fiber.at(nearest_idx_2))
+        ) ;
         if(it == fiber.begin()) {
             break;
         }
+        j += 2;
     }
+}
+
+
+auto Network::ramification_probe(const cplx &x0) -> void {
+    auto fiber = curve_->get_fiber(x0);
+    state_type v;
     for(auto& r : ramification_points_) {
+        spdlog::debug("Probing ramification point at x = {}", complex_to_string(r.at(kIndexX)));
+        size_t j = 0;
         auto x_end = r.at(kIndexX);
         for(auto it = fiber.begin(); it != fiber.end(); it++) {
-            v.at(kIndexX) = x_infty;
+            v.at(kIndexX) = x0;
             v.at(kIndexY1) = std::log(*it);
             it++;
             if(it == fiber.end()) {
@@ -975,25 +1320,55 @@ auto Network::probe_curve() -> void { // initial_integration();
             }
             v.at(kIndexY2) = std::log(*it);
             print_state_type(v);
-            auto straight = draw_straight(v, x_end);
             std::vector<double> straight_masses;
-            straight_masses.assign(straight.size(), 0);
+            straight_masses.push_back(0);
+            auto straight = draw_arc(v, x_end, straight_masses,0);
             uint32_t index = new_paths_.size();
             Path straight_path(straight, straight_masses, index);
+            spdlog::debug("Path created");
             new_paths_.push_back(straight_path);
-            save_data(index);
+            spdlog::debug("Path appended");
+            auto path_it = new_paths_.end() - 1;
+            path_it->save_data();
+            spdlog::debug("Path saved");
+            auto endpoint = path_it->get_endpoint();
+            std::cout << endpoint.at(kIndexX) << std::endl;
+            auto target = std::exp(endpoint.at(kIndexY1));
+            auto target_2 = std::exp(endpoint.at(kIndexY2));
+            auto ram_fiber = curve_->get_fiber(endpoint.at(kIndexX));
+            size_t nearest_idx = find_nearest(target, ram_fiber);
+            size_t nearest_idx_2 = find_nearest(target_2, ram_fiber);
+
+            spdlog::debug("Sheet {} -> Sheet {}.", j, nearest_idx);
+            spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                    j, 
+                    complex_to_string(target), 
+                    nearest_idx, 
+                    complex_to_string(ram_fiber.at(nearest_idx))
+            );
+            spdlog::debug("Sheet {} -> Sheet {}.", j + 1, nearest_idx_2);
+            spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                    j + 1, 
+                    complex_to_string(target_2), 
+                    nearest_idx_2, 
+                    complex_to_string(ram_fiber.at(nearest_idx_2))
+            ) ;
             if(it == fiber.begin()) {
                 break;
             }
+            j += 2;
         }
     }
 
-    cplx radius = 0.005;
-    for(auto& r : ramification_points_) {
-        auto x_center = r.at(kIndexX);
-        v.at(kIndexX) = x_center + radius;
-        fiber = curve_->get_fiber(v.at(kIndexX));
-        for(auto it = fiber.begin(); it != fiber.end(); it++) {
+}
+
+auto Network::two_point_probe(const cplx &x_start, const cplx &x_end) -> void {
+    spdlog::debug("Probing between {} and {}", complex_to_string(x_start), complex_to_string(x_end));
+    size_t j = 0;
+    auto fiber = curve_->get_fiber(x_start);
+    state_type v;
+    for(auto it = fiber.begin(); it != fiber.end(); it++) {
+            v.at(kIndexX) = x_start;
             v.at(kIndexY1) = std::log(*it);
             it++;
             if(it == fiber.end()) {
@@ -1001,16 +1376,63 @@ auto Network::probe_curve() -> void { // initial_integration();
             }
             v.at(kIndexY2) = std::log(*it);
             print_state_type(v);
-            auto straight = draw_circle(v, x_center);
             std::vector<double> straight_masses;
-            straight_masses.assign(straight.size(), 0);
+            straight_masses.push_back(0);
+            auto straight = draw_arc(v, x_end, straight_masses,0);
             uint32_t index = new_paths_.size();
             Path straight_path(straight, straight_masses, index);
+            spdlog::debug("Path created");
             new_paths_.push_back(straight_path);
-            save_data(index);
+            spdlog::debug("Path appended");
+            auto path_it = new_paths_.end() - 1;
+            path_it->save_data();
+            spdlog::debug("Path saved");
+            auto endpoint = path_it->get_endpoint();
+            std::cout << endpoint.at(kIndexX) << std::endl;
+            auto target = std::exp(endpoint.at(kIndexY1));
+            auto target_2 = std::exp(endpoint.at(kIndexY2));
+            auto ram_fiber = curve_->get_fiber(endpoint.at(kIndexX));
+            size_t nearest_idx = find_nearest(target, ram_fiber);
+            size_t nearest_idx_2 = find_nearest(target_2, ram_fiber);
+
+            spdlog::debug("Sheet {} -> Sheet {}.", j, nearest_idx);
+            spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                    j, 
+                    complex_to_string(target), 
+                    nearest_idx, 
+                    complex_to_string(ram_fiber.at(nearest_idx))
+            );
+            spdlog::debug("Sheet {} -> Sheet {}.", j + 1, nearest_idx_2);
+            spdlog::debug("Endpoint of {}: {}, Sheet {}: {}.", 
+                    j + 1, 
+                    complex_to_string(target_2), 
+                    nearest_idx_2, 
+                    complex_to_string(ram_fiber.at(nearest_idx_2))
+            ) ;
             if(it == fiber.begin()) {
                 break;
             }
-        }
+            j += 2;
     }
-}
+}  
+
+auto Network::probe_curve() -> void { 
+    cplx anker = 0.8;
+
+
+    spdlog::info("Probing the curve");
+    
+    cplx x0 =5e-3;
+    
+    cplx x_infty = 15.0;
+    circle_probe(x0);
+    circle_probe(x_infty);
+    // circle_probe(anker);
+    // ramification_probe(anker);
+    // encircle_probe(anker, x0);
+    two_point_probe(x0, anker);
+    two_point_probe(anker, x_infty);
+    // two_point_probe(x0, x_infty);
+    // encircle_probe(ramification_points_.at(0).at(kIndexX), ramification_points_.at(6).at(kIndexX));
+    encircle_probe(ramification_points_.at(3).at(kIndexX), ramification_points_.at(7).at(kIndexX));
+} 

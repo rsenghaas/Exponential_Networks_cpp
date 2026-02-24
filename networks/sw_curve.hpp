@@ -39,12 +39,14 @@ class SW_curve {
   auto eval_d2H_dy2(const cplx &x, const cplx &y) -> cplx;
 
   auto sw_differential(const state_type &v, state_type &dv) -> void;
+  auto sw_step_prescribed(const state_type &v, state_type &dv) -> void;
   auto elliptic_differential(const state_type &v, state_type &dv) -> void;
+  auto newton_correction(state_type &v, int steps, double damp) -> void;
 
   auto get_branch_points() -> std::vector<cplx>;
   auto get_ramification_points() -> std::vector<std::array<cplx, 2>>;
   auto get_fiber(const cplx &x) -> std::vector<cplx>;
-  auto get_branched_sheet(const cplx &x) -> cplx;
+  auto get_branched_sheet(const cplx &x) -> std::vector<cplx>;
   auto match_fiber(state_type &v) -> void;
   auto save_branch_points(std::vector<cplx> branch_points) -> void;
   auto refine_root(const cplx& y, const cplx &x) -> cplx;

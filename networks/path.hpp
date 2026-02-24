@@ -39,8 +39,12 @@ class Path {
   auto get_length() -> uint32_t { return v_.size(); }
   auto print_data() -> void;
   auto save_data() -> void;
+
+  auto get_mass(uint32_t t) -> double { return masses_.at(t); }
   auto get_endmass() -> double { return masses_.back(); }
   auto truncate(uint32_t t_start, uint32_t t_end) -> void;
+  auto truncate_mass(double mass) -> void;
+  auto truncate_x(double r) -> void;    
   auto override_endpoint(state_type& v) -> void;
   auto append_data(std::vector<state_type>& v, std::vector<double>& masses)
       -> void;

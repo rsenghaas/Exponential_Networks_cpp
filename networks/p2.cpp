@@ -23,10 +23,11 @@ auto H_p2(const GiNaC::symbol& x, const GiNaC::symbol& y, const cplx Q) -> GiNaC
 
 auto H_1_1_2(const GiNaC::symbol& x, const GiNaC::symbol& y, cplx Q1, cplx Q2) -> GiNaC::ex {
   int f = 0;
-  int fy = 1;
+  int fy = 0;
   GiNaC::ex x_sub = x * GiNaC::pow(-y, f);
   GiNaC::ex y_sub = y * GiNaC::pow(-x, fy);
-  return (1 + x_sub + complex_to_ex(Q1) * (1 + y_sub) * (1 + y_sub) / (x_sub * x_sub * y_sub)) * x_sub * x_sub * y_sub;
+  return (1 + x_sub - 2 * complex_to_ex(Q1) * complex_to_ex(Q2) / (x_sub * x_sub)  + complex_to_ex(Q1) 
+              * (1 + y_sub) * (1 + y_sub) / (x_sub * x_sub * y_sub)) * x_sub * x_sub * y_sub;
 }
 
 auto custom_curve(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
@@ -50,17 +51,17 @@ auto P2::custom_BPS(double cutoff) -> void {
         new_paths_.at(k).override_endpoint(endpoint);
     }
     initial_integration();
-    auto path_it = get_iterator_by_id(new_paths_, 0);
+    auto path_it = get_iterator_by_id(new_paths_, 0); 
     for (uint32_t k = 0; k < new_paths_.size(); k += 1){
         path_it = get_iterator_by_id(new_paths_, k);
         save_data(path_it->path_id_);
         evolve_path(path_it, cutoff);
         save_data(path_it->path_id_);
     }
-    // two_path_intersection_handler(4, 11, true, true, 0, 0, true, true); 
+    // two_path_intersection_handler(5, 8, true, true, 1, 0, false, false); 
     // path_it = get_iterator_by_id(new_paths_, 12);
     // save_data(path_it->path_id_);
     // evolve_path(path_it, cutoff);
-    // save_data(4);
+    // save_data(12);
     // save_data(11);
 }

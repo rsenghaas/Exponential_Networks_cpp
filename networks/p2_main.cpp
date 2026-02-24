@@ -32,7 +32,7 @@ auto main(int argc, char* argv[]) -> int {
     theta = std::stod(theta_string);
     std::cout << "\u03D1 = " << theta << std::endl;
   }
-  double cutoff{kCutoff};
+  double cutoff{100};
   cplx Q1{kDefaultQ};
   cplx Q2{0};
   if (argc > 2) {

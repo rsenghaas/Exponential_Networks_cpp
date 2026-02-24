@@ -82,19 +82,26 @@ auto SW_curve::get_ramification_points() -> std::vector<std::array<cplx, 2>> {
   std::vector<cplx> branch_points = get_branch_points();
   std::vector<cplx> true_branch_points = {};
   std::vector<std::array<cplx, 2>> ramification_points;
-  for (auto &b : branch_points) {
+  for (size_t i = 0; i < branch_points.size(); ++i) {
+    auto b = branch_points.at(i);
+    if (i != 0) {
+        if (std::abs(b - branch_points.at(i - 1)) < 1e-4) {
+            continue;
+        }
+    }
     if(std::abs(b) < kZerosPrecisions or std::abs(b) > 1.0 / kZerosPrecisions) {
         continue;
-    }
-    auto sheet = get_branched_sheet(b);
-    if(std::abs(sheet) != 0) {
-        std::array<cplx, 2> r;
-        r.at(kIndexX) = b;
-        r.at(kIndexY) = sheet;
-        spdlog::debug("Ramification y is {}", complex_to_string(r.at(kIndexY)));
-        spdlog::debug("H value is {}", complex_to_string(eval_H(r.at(kIndexX), r.at(kIndexY))));
-        ramification_points.push_back(r);
-        true_branch_points.push_back(b);
+    }    auto sheets = get_branched_sheet(b);
+    for(auto &sheet: sheets) {
+        if(std::abs(sheet) != 0) {
+            std::array<cplx, 2> r;
+            r.at(kIndexX) = b;
+            r.at(kIndexY) = sheet;
+            spdlog::debug("Ramification y is {}", complex_to_string(r.at(kIndexY)));
+            spdlog::debug("H value is {}", complex_to_string(eval_H(r.at(kIndexX), r.at(kIndexY))));
+            ramification_points.push_back(r);
+            true_branch_points.push_back(b);
+        }
     }
   }
   save_branch_points(true_branch_points);
@@ -112,6 +119,31 @@ auto SW_curve::sw_differential(const state_type &v, state_type &dv) -> void {
   dv.at(kIndexY2) = -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY2))) /
                     eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY2))) *
                     dv.at(kIndexX) / std::exp(v.at(kIndexY2));
+}
+
+auto SW_curve::sw_step_prescribed(const state_type &v, state_type &dv) -> void {
+  dv.at(kIndexY1) += -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY1))) /
+                    eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY1))) *
+                    dv.at(kIndexX) / std::exp(v.at(kIndexY1));
+  dv.at(kIndexY2) += -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY2))) /
+                    eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY2))) *
+                    dv.at(kIndexX) / std::exp(v.at(kIndexY2));
+}
+ 
+auto SW_curve::newton_correction(state_type &v, int steps, double damp) -> void {
+    cplx x =v.at(kIndexX);
+    for (size_t id = 1; id <= 2; id++) {
+        for(size_t i = 0; i < steps; i++) {
+            if ( std::abs(eval_dH_dy(x,std::exp(v.at(id)))) < 1e-2) {
+                continue;
+            }
+            if ( std::abs(eval_dH_dy(x,std::exp(v.at(id)))) <  1e-2) {
+                continue;
+            }
+            v.at(id) = v.at(id) - damp * eval_H(x,std::exp(v.at(id))) 
+                / eval_dH_dy(x,std::exp(v.at(id))) * std::exp(v.at(id)); 
+        }
+    }
 }
 
 auto SW_curve::elliptic_differential(const state_type &v, state_type &dv)
@@ -234,7 +266,7 @@ auto SW_curve::match_fiber(state_type &v) -> void {
   print_state_type(v);
  }
 
-auto SW_curve::get_branched_sheet(const cplx &x) -> cplx { 
+auto SW_curve::get_branched_sheet(const cplx &x) -> std::vector<cplx> { 
   GiNaC::ex fiber_poly = H_.subs({x_ == complex_to_ex(x)});
   spdlog::debug("Getting branched sheet.");
   std::vector<cplx> fiber = roots(fiber_poly, y_, false);
@@ -243,18 +275,28 @@ auto SW_curve::get_branched_sheet(const cplx &x) -> cplx {
   }
   std::cout << std::endl;
   double diff = std::numeric_limits<double>::max();
-  cplx sheet = 0;
+  std::vector<cplx> sheets;
   for (auto it1 = std::rbegin(fiber); it1 != std::rend(fiber); it1++) {
     for (auto it2 = it1 + 1; it2 != std::rend(fiber); it2++) {
       double new_diff = std::abs(*it1 - *it2);
-      if (new_diff < diff && new_diff < 1e-3) {
+      if (new_diff < 1e-4) {
         diff = new_diff;
-        sheet = (*it1 + *it2) / 2.0;
+        cplx sheet = (*it1 + *it2) / 2.0;
+        for(auto &s : sheets) {
+            new_diff = std::abs(s - sheet);
+            if(new_diff < 1e-4)
+            {
+                sheet = 0;
+            }
+        }
+        if (std::abs(sheet) > kZerosPrecisions){
+            sheets.push_back((*it1 + *it2) / 2.0);
+            spdlog::debug("Ramification at {}", complex_to_string(sheet));
+        }
       }
     }
   }
-  spdlog::debug("Ramification at {}", complex_to_string(sheet));
-  return sheet;
+  return sheets;
 }
 
 auto SW_curve::save_branch_points(std::vector<cplx> branch_points) -> void {

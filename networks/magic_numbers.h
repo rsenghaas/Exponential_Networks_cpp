@@ -46,15 +46,15 @@ const double kD4angle = -0.01003;
 const double kD4Cutoff = 198.065;
 
 // ODE integration constants.
-const double kIntegratePeriod = 5.0;
+const double kIntegratePeriod = 20.0;
 const double kBranchPointStep = 1e-15;
 const double kInitialStepSize = 1e-15;
 const double kIntegraterStepSize = 1e-8;
 const double kCutoff = 50;
-const double kLowCutoffX = 1e-15;
-const double kHighCutoffX = 1000;
+const double kLowCutoffX = 1e-10;
+const double kHighCutoffX = 100;
 const double kCutoffY = 10000;
-const uint32_t kMaxSteps = 3000;
+const uint32_t kMaxSteps = 6000;
 
 // Datapoint index constants.
 constexpr uint32_t kIndexLowerBound = 0;
