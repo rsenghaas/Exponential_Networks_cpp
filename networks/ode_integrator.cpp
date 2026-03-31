@@ -30,7 +30,7 @@ auto ODE_euler_step_prescribed(const std::shared_ptr<SW_curve> &curve,
   curve->sw_step_prescribed(v.back(), dv);
   auto next_v = v.back() + dv;
   if (with_newton) {
-    curve->newton_correction(next_v, 10, 0.05);
+    curve->newton_correction(next_v, 10, 1);
   }
   v.push_back(next_v);
   masses.push_back(masses.back() + compute_dm(next_v, dv));

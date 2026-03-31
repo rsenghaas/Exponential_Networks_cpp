@@ -26,7 +26,7 @@ auto sylvester_matrix(const GiNaC::ex &f, const GiNaC::ex &g,
                       const GiNaC::symbol &x) -> GiNaC::matrix;
 auto discriminant(const GiNaC::ex &f, const GiNaC::symbol &x) -> GiNaC::ex;
 
-auto roots(const GiNaC::ex &f, const GiNaC::symbol &x, bool initial_schur) -> std::vector<cplx>;
+auto roots(const GiNaC::ex &f, const GiNaC::symbol &x, [[maybe_unused]] bool initial_schur) -> std::vector<cplx>;
 auto schur_roots(const GiNaC::ex &f, const GiNaC::symbol &x) -> std::vector<cplx>;
 auto refine_root_newton(const GiNaC::ex& f, const GiNaC::symbol& x, cplx z0) -> cplx;
 

@@ -31,7 +31,7 @@ const double kFiberCompTolerance = 1e-6;
 
 // Iteration constants.
 const uint32_t kInitialSteps = 200;
-const uint32_t kZerosMaxIterations = 3000;
+const uint32_t kZerosMaxIterations = 6000;
 const uint32_t kLineStepsPerUnit = 30;
 
 // Map constants.

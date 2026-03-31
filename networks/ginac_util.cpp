@@ -5,6 +5,9 @@
 #include <random>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
+#include <flint/arb.h>
+#include <flint/acb.h>
+#include <flint/acb_poly.h>
 
 auto numeric_to_complex(const GiNaC::numeric &z) -> cplx {
   double re = GiNaC::real(z).to_double();
@@ -53,7 +56,61 @@ auto eval_ex_to_complex(const GiNaC::ex &f, const GiNaC::symbol &x,
       GiNaC::ex_to<GiNaC::numeric>(f.subs({x == complex_to_ex(z)})));
 }
 
-auto roots(const GiNaC::ex &f, const GiNaC::symbol &x, bool initial_schur) -> std::vector<cplx> {
+auto roots(const GiNaC::ex &f, const GiNaC::symbol &x, [[maybe_unused]] bool initial_schur) -> std::vector<cplx> {
+    // Normalize: expand, strip leading x^k factor, drop near-zero coefficients, make monic
+    GiNaC::ex poly = f.expand();
+    int min_deg = poly.ldegree(x);
+    poly = (poly * GiNaC::pow(x, -min_deg)).expand();
+    uint32_t deg = poly.degree(x);
+
+    // Build monic polynomial with evaluated numeric coefficients
+    GiNaC::ex monic = 0;
+    for (uint32_t i = 0; i <= deg; ++i) {
+        GiNaC::numeric c = GiNaC::ex_to<GiNaC::numeric>(poly.coeff(x, i).evalf());
+        if (!c.is_zero()) monic += c * GiNaC::pow(x, i);
+    }
+    monic = (monic / monic.lcoeff(x)).expand();
+    deg = monic.degree(x);
+
+    // Build acb_poly from coefficients
+    acb_poly_t p;
+    acb_poly_init(p);
+    acb_poly_fit_length(p, deg + 1);
+    for (uint32_t i = 0; i <= deg; ++i) {
+        cplx c = numeric_to_complex(GiNaC::ex_to<GiNaC::numeric>(monic.coeff(x, i).evalf()));
+        acb_t coeff; acb_init(coeff);
+        acb_set_d_d(coeff, c.real(), c.imag());
+        acb_poly_set_coeff_acb(p, i, coeff);
+        acb_clear(coeff);
+    }
+
+    // Find roots, doubling precision until all are isolated
+    acb_ptr found = _acb_vec_init(deg);
+    int n_found = 0;
+    for (slong prec = 1 << 14; prec <= 1 << 20 && n_found != (int)deg; prec *= 2) {
+        n_found = acb_poly_find_roots(found, p, nullptr, 0, prec);
+        if (n_found != (int)deg)
+            spdlog::debug("acb_poly_find_roots: {}/{} roots at prec {}, retrying.", n_found, deg, prec);
+    }
+    if (n_found != (int)deg)
+        spdlog::warn("acb_poly_find_roots: only isolated {}/{} roots.", n_found, deg);
+
+    // Convert to std::complex<double> and prepend min_deg roots at origin
+    std::vector<cplx> result(min_deg, cplx(0.0, 0.0));
+    for (int i = 0; i < n_found; ++i)
+        result.emplace_back(arf_get_d(arb_midref(acb_realref(found + i)), ARF_RND_NEAR),
+                            arf_get_d(arb_midref(acb_imagref(found + i)), ARF_RND_NEAR));
+
+    _acb_vec_clear(found, deg);
+    acb_poly_clear(p);
+
+    std::sort(result.begin(), result.end(), [](const cplx &a, const cplx &b) {
+        return a.real() < b.real();
+    });
+    return result;
+}
+
+auto old_roots(const GiNaC::ex &f, const GiNaC::symbol &x, bool initial_schur) -> std::vector<cplx> {
   // spdlog::debug("Enter zero search.");
   GiNaC::ex Poly = f.expand(); 
   int min_deg = std::numeric_limits<int>::max();

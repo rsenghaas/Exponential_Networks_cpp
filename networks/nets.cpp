@@ -325,13 +325,13 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
     file.close();
     return;
   }
-  if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
+  /* if (inter_it->times.at(kIndexSecondPath).at(kIndexStartTime) == 0) {
     inter_it++;
     if(inter_it == intersections.end()) {
         file.close();
         return;
     }
-  }
+  } */
   for(uint32_t k = 0; k < intersection_number; k++) {
       inter_it++;
       if(inter_it == intersections.end()) {
@@ -403,29 +403,37 @@ auto Network::two_path_intersection_handler(uint32_t id_A, uint32_t id_B,
     
             shift_state_B.at(kIndexX) = next_state.at(kIndexX);
             curve_->match_fiber(shift_state);
+            state_type temp_state_A = next_state;
+            state_type temp_state_B = shift_state;
             if (shift || n == 0) {
-                if(std::abs(std::exp(shift_state.at(kIndexY1)) - std::exp(next_state.at(kIndexY1)))
-                    < kFiberCompTolerance) {
-                    shift_state.at(kIndexY1) += shift_state_B.at(kIndexY1) - shift_state_B.at(kIndexY2);
-                }
-                else {
-                    shift_state.at(kIndexY2) += shift_state_B.at(kIndexY2) - shift_state_B.at(kIndexY1);
-                }   
-                add_new_path_with_mass(next_state, mass_A + mass_B);
-                file 
-                    << new_paths_.size() - 1 << "," 
-                    << id_A << "," 
-                    << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
-                    << id_B << "," 
-                    << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                    if(std::abs(std::exp(shift_state.at(kIndexY1)) - std::exp(next_state.at(kIndexY1)))
+                        < kFiberCompTolerance) {
+                        temp_state_B.at(kIndexY1) += shift_state_B.at(kIndexY1) - shift_state_B.at(kIndexY2);
+                    }
+                    else {
+                        temp_state_B.at(kIndexY2) += shift_state_B.at(kIndexY2) - shift_state_B.at(kIndexY1);
+                    }   
+                    auto log_A = temp_state_A.at(kIndexY1) - temp_state_A.at(kIndexY2);
+                    auto log_B = temp_state_B.at(kIndexY1) - temp_state_B.at(kIndexY2);
+                    for(int32_t i = 0; i <= std::abs(n); i++) {
+                        add_new_path_with_mass(temp_state_A, (i + 1) *(mass_A + mass_B));
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
 
-                add_new_path_with_mass(shift_state, mass_A + mass_B);
-                file 
-                    << new_paths_.size() - 1 << "," 
-                    << id_A << "," 
-                    << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
-                    << id_B << "," 
-                    << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                        add_new_path_with_mass(temp_state_B, (i + 1) * (mass_A + mass_B));
+                        file 
+                            << new_paths_.size() - 1 << "," 
+                            << id_A << "," 
+                            << inter_it->times.at(kIndexFirstPath).at(kIndexEndTime) << "," 
+                            << id_B << "," 
+                            << inter_it->times.at(kIndexSecondPath).at(kIndexEndTime) <<'\n';
+                        temp_state_A.at(kIndexY1) += log_A;
+                        temp_state_B.at(kIndexY1) += log_B;
+                    }
             }
             if ( n == 0 ) {
                 return;
@@ -1102,42 +1110,39 @@ auto Network::print_ramification_points() -> void {
   }
 }
 
-auto Network::draw_circle(state_type &v, cplx center, std::vector<double> &masses) -> std::vector<state_type> {
+auto Network::draw_circle(std::vector<state_type> &line, cplx center, std::vector<double> &masses) -> void {
     spdlog::debug("Drawing");
-    cplx radius = v.at(kIndexX) - center;
-    std::vector<state_type> circle;
-    circle.push_back(v);
-    for(int i = 0; i <  501; i++) {
-        v.at(kIndexX) = center + radius * std::exp(2 * pi * J * static_cast<double>(i) / 500.0); 
-        auto dx = v.at(kIndexX) - circle.back().at(kIndexX);
-        ODE_euler_step_prescribed(curve_, circle, dx, masses, false);
-    }
-    return circle;
-}
-
-auto Network::draw_straight(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses) -> void {
     auto x_start = line.back().at(kIndexX);
-    uint32_t segments = 3000;
-    for(uint32_t i = 1; i < segments; i++) {
-        cplx x = (1 - 1.0 * i / segments) * x_start + 1.0 * i / segments * x_end;
+    cplx radius = x_start - center;
+    for(int i = 0; i <  501; i++) {
+        cplx x = center + radius * std::exp(2 * pi * J * static_cast<double>(i) / 500.0); 
         auto dx = x - line.back().at(kIndexX);
-        ODE_euler_step_prescribed(curve_, line, dx , masses, false);
+        ODE_euler_step_prescribed(curve_, line, dx, masses, true);
     }
     return;
 }
 
-auto Network::draw_arc(state_type &v, cplx x_end, std::vector<double> &masses, int32_t winding) -> std::vector<state_type> {
-    std::vector<state_type> line;
-    cplx x_start = v.at(kIndexX);
-    line.push_back(v);
-    uint32_t segments = 5000;
-    for(uint32_t i = 1; i <= segments; i++) {
-        v.at(kIndexX) = std::pow(x_start,(1 - 1.0 * i / segments)) * std::pow(x_end, 1.0 * i / segments) 
-            * std::exp((2.0 * winding)*  pi * J * (1.0 * i / segments));
-        auto dx = v.at(kIndexX) - line.back().at(kIndexX);
-        ODE_euler_step_prescribed(curve_, line, dx, masses, false);
+auto Network::draw_straight(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses) -> void {
+    auto x_start = line.back().at(kIndexX);
+    uint32_t segments = 2000;
+    for(uint32_t i = 1; i < segments; i++) {
+        cplx x = (1 - 1.0 * i / segments) * x_start + 1.0 * i / segments * x_end;
+        auto dx = x - line.back().at(kIndexX);
+        ODE_euler_step_prescribed(curve_, line, dx , masses, true);
     }
-    return line;
+    return;
+}
+
+auto Network::draw_arc(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses, int32_t winding) -> void {
+    cplx x_start = line.back().at(kIndexX);
+    uint32_t segments = 2000;
+    for(uint32_t i = 1; i <= segments; i++) {
+        cplx x = std::pow(x_start,(1 - 1.0 * i / segments)) * std::pow(x_end, 1.0 * i / segments) 
+            * std::exp((2.0 * winding)*  pi * J * (1.0 * i / segments));
+        auto dx = x - line.back().at(kIndexX);
+        ODE_euler_step_prescribed(curve_, line, dx, masses, true);
+    }
+    return;
 }
 
 
@@ -1168,9 +1173,7 @@ auto Network::encircle_points(state_type v, const std::vector<cplx> &way_points,
     for(int i = 0; i <  1001; i++) {
         v.at(kIndexX) = x1 + offset * std::exp(2 * pi * J * static_cast<double>(i) / 1000.0); 
         auto dx = v.at(kIndexX) - line.back().at(kIndexX);
-        for(size_t s = 0; s < 10; s++) {
-            ODE_euler_step_prescribed(curve_, line, dx / 10.0, masses, true);
-        }
+        ODE_euler_step_prescribed(curve_, line, dx, masses, true);
     }
     
     for (auto it = way_points.rbegin() + 1; it != way_points.rend(); ++it) {
@@ -1181,21 +1184,19 @@ auto Network::encircle_points(state_type v, const std::vector<cplx> &way_points,
     for(int i = 0; i <  1001; i++) {
         cplx x = (x_start - offset) + offset * std::exp(2 * pi * J * static_cast<double>(i) / 1000.0); 
         auto dx = x - line.back().at(kIndexX);
-        for(size_t s = 0; s < 10; s++) {
-            ODE_euler_step_prescribed(curve_, line, dx / 10.0, masses, true);
-        }
+        ODE_euler_step_prescribed(curve_, line, dx, masses, true);
     }
 
     return line;
 }
 
-auto Network::circle_probe(const cplx &x0) -> void {
+auto Network::circle_probe(const cplx &x0, const cplx &anker) -> void {
     spdlog::debug("Making a circle paths");
     state_type v;
-    auto fiber = curve_->get_fiber(x0);
+    auto fiber = curve_->get_fiber(anker);
     size_t j = 0;
     for(auto it = fiber.begin(); it != fiber.end(); it++) {
-        v.at(kIndexX) = x0;
+        v.at(kIndexX) = anker;
         v.at(kIndexY1) = std::log(*it);
         it++;
         if(it == fiber.end()) {
@@ -1203,9 +1204,13 @@ auto Network::circle_probe(const cplx &x0) -> void {
         }
         v.at(kIndexY2) = std::log(*it);
         print_state_type(v);
-        std::vector<double> circ_masses;
+        std::vector<double> circ_masses;    
+        std::vector<state_type> circ;
+        circ.push_back(v);
         circ_masses.push_back(0);
-        auto circ = draw_circle(v, 0, circ_masses);
+        draw_straight(circ, x0, circ_masses);
+        draw_circle(circ, 0, circ_masses);
+        draw_straight(circ, anker, circ_masses);
         uint32_t index = new_paths_.size();
 
         Path circ_path(circ, circ_masses, index);
@@ -1245,16 +1250,17 @@ auto Network::circle_probe(const cplx &x0) -> void {
 
 auto Network::encircle_probe(const cplx &x0, const cplx &x1) -> void {
     spdlog::debug("Encircling points");
-    double radius = 2e-1;
+    double radius = 4e-2;
     state_type v;
-    cplx offset = radius *(x0 - x1) / std::abs(x0 - x1) * J;
-    auto fiber = curve_->get_fiber(x0 + offset);
+    cplx offset = x1 - std::pow(x0, 0.01) * std::pow(x1, 0.99);
+    offset = radius * offset / std::abs(offset);
+    auto fiber = curve_->get_fiber(x0);
     for(auto &f : fiber) {
         spdlog::debug("Fiber value: {}", complex_to_string(f));
     }
     size_t j = 0;
     for(auto it = fiber.begin(); it != fiber.end(); it++) {
-        v.at(kIndexX) = x0 + offset;
+        v.at(kIndexX) = x0;
         v.at(kIndexY1) = std::log(*it);
         it++;
         if(it == fiber.end()) {
@@ -1264,8 +1270,11 @@ auto Network::encircle_probe(const cplx &x0, const cplx &x1) -> void {
         print_state_type(v);
         std::vector<double> circ_masses;
         circ_masses.push_back(0);
-        std::vector<cplx> way_points = {0.8 + 0.3 * J, 2.0 + 0.5 * J, x1};
-        auto circ = encircle_points(v, way_points, circ_masses, offset);
+        std::vector<state_type> circ;
+        circ.push_back(v);
+        draw_arc(circ, x1 - offset, circ_masses, 0);
+        draw_circle(circ, x1, circ_masses);
+        draw_arc(circ, x0, circ_masses, 0);
         uint32_t index = new_paths_.size();
 
         Path circ_path(circ, circ_masses, index);
@@ -1322,7 +1331,10 @@ auto Network::ramification_probe(const cplx &x0) -> void {
             print_state_type(v);
             std::vector<double> straight_masses;
             straight_masses.push_back(0);
-            auto straight = draw_arc(v, x_end, straight_masses,0);
+            std::vector<state_type> straight;
+            straight.push_back(v);
+            draw_arc(straight, x_end, straight_masses,0);
+
             uint32_t index = new_paths_.size();
             Path straight_path(straight, straight_masses, index);
             spdlog::debug("Path created");
@@ -1378,7 +1390,9 @@ auto Network::two_point_probe(const cplx &x_start, const cplx &x_end) -> void {
             print_state_type(v);
             std::vector<double> straight_masses;
             straight_masses.push_back(0);
-            auto straight = draw_arc(v, x_end, straight_masses,0);
+            std::vector<state_type> straight;
+            straight.push_back(v);
+            draw_arc(straight, x_end, straight_masses,0);
             uint32_t index = new_paths_.size();
             Path straight_path(straight, straight_masses, index);
             spdlog::debug("Path created");
@@ -1422,17 +1436,21 @@ auto Network::probe_curve() -> void {
 
     spdlog::info("Probing the curve");
     
-    cplx x0 =5e-3;
+    cplx x0 =1e-1;
     
     cplx x_infty = 15.0;
-    circle_probe(x0);
-    circle_probe(x_infty);
-    // circle_probe(anker);
-    // ramification_probe(anker);
-    // encircle_probe(anker, x0);
+    circle_probe(x0, anker);
+    circle_probe(x_infty, anker);
+    circle_probe(anker, anker);
+    ramification_probe(anker);
+    for(auto& r : ramification_points_) {
+        cplx x = r.at(kIndexX);
+        spdlog::debug("Probing monodromy aroud {}", complex_to_string(x));
+        encircle_probe(anker, x);
+    }
     two_point_probe(x0, anker);
     two_point_probe(anker, x_infty);
-    // two_point_probe(x0, x_infty);
+    two_point_probe(x0, x_infty);
     // encircle_probe(ramification_points_.at(0).at(kIndexX), ramification_points_.at(6).at(kIndexX));
-    encircle_probe(ramification_points_.at(3).at(kIndexX), ramification_points_.at(7).at(kIndexX));
+    // encircle_probe(ramification_points_.at(3).at(kIndexX), ramification_points_.at(7).at(kIndexX));
 } 

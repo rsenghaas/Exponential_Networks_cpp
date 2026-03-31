@@ -94,12 +94,12 @@ class Network {
                                    std::vector<Path>::iterator path_B_it,
                                    int32_t n, state_type &new_state) -> bool;
 
-  auto draw_circle(state_type &v, cplx center, std::vector<double> &masses) -> std::vector<state_type>;
+  auto draw_circle(std::vector<state_type> &line, cplx center, std::vector<double> &masses) -> void;
   auto initial_integration() -> void;
   auto draw_straight(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses) -> void;
-  auto draw_arc(state_type &v, cplx x_end, std::vector<double> &masses, int32_t winding) -> std::vector<state_type>;
+  auto draw_arc(std::vector<state_type> &line, cplx x_end, std::vector<double> &masses, int32_t winding) -> void;
   auto ramification_probe(const cplx &x0) -> void;
-  auto circle_probe(const cplx &x0) -> void;
+  auto circle_probe(const cplx &x0, const cplx &anker) -> void;
   auto two_point_probe(const cplx &x_start, const cplx &x_end) -> void;
   auto encircle_probe(const cplx &x0, const cplx &x1) -> void;
   auto encircle_points(state_type v, const std::vector<cplx> &way_points,  std::vector<double> &masses, cplx offset) -> std::vector<state_type>;

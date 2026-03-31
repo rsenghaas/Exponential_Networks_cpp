@@ -88,6 +88,20 @@ cc_library(
 )
 
 cc_library(
+    name = "pureYM",
+    srcs = ["pureYM.cpp"],
+    hdrs = ["pureYM.hpp"],
+    copts = CXX_OPTS,
+    deps = [
+        ":util",
+        ":path",
+        ":maps",
+        ":sw_curve",
+        ":nets",
+    ]
+)
+
+cc_library(
     name = "p2",
     srcs = ["p2.cpp"],
     hdrs = ["p2.hpp"],
@@ -246,6 +260,35 @@ cc_library(
 )
 
 cc_library(
+    name = "spectral_nets",
+    srcs = [
+        "spectral_nets.cpp",
+    ],
+    hdrs = [
+        "ode_integrator.hpp",
+        "spectral_nets.hpp",
+        "sw_curve.hpp",
+        "maps.hpp",
+        "path.hpp",
+        "type_util.hpp",
+        "magic_numbers.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O3",
+    ],
+    deps = [
+        ":maps",
+        ":path",
+        ":sw_curve",
+        ":util",
+        "@eigen_archive//:eigen",
+        "@spdlog",
+    ]
+)
+
+
+cc_library(
     name = "nets",
     srcs = [
         "nets.cpp",
@@ -304,6 +347,25 @@ cc_binary(
 # TODO: Shouldn't have to link arb here (used in sw_curve)
 
 cc_binary(
+    name = "pureYM_networks",
+    srcs = [
+        "pureYM_main.cpp",
+    ],
+    copts = CXX_OPTS,
+    linkopts = [
+        "-lginac",
+        "-lcln",
+        "-lflint",
+        #"-larb",
+        "-v",
+    ],
+    deps = [
+        ":pureYM",
+        ":util",
+    ]
+)
+
+cc_binary(
     name = "coni_networks",
     srcs = [
         "coni_main.cpp",
@@ -321,6 +383,7 @@ cc_binary(
         ":util",
     ]
 )
+
 
 cc_binary(
     name = "p2_networks",

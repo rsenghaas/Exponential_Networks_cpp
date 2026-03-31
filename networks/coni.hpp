@@ -15,10 +15,11 @@ auto F_trefoil_generic(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC:
 auto F_test(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
 auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex;
 auto A_super_3_1(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex;
+auto F_5_2_hyperbolic(const GiNaC::symbol& x, const GiNaC::symbol &y) -> GiNaC::ex;
 
 class Coni : protected Network {
  public:
-  explicit Coni(double theta) : Network(F_trefoil_generic, theta) {}
+  explicit Coni(double theta) : Network(F_2_5, theta) {}
 
   auto custom_BPS(double cutoff) -> void;
 

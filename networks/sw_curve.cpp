@@ -108,17 +108,29 @@ auto SW_curve::get_ramification_points() -> std::vector<std::array<cplx, 2>> {
   return ramification_points;
 }
 
+
 // At the moment this only does exponential networks
 // It might to return to expressions and build the differential outside the
 // class.
 auto SW_curve::sw_differential(const state_type &v, state_type &dv) -> void {
-  dv.at(kIndexX) = v.at(kIndexX) / (v.at(kIndexY2) - v.at(kIndexY1));
-  dv.at(kIndexY1) = -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY1))) /
+    if (mode == "spectral") {
+        dv.at(kIndexX) = v.at(kIndexX) / (v.at(kIndexY2) - v.at(kIndexY1));
+        dv.at(kIndexY1) = -eval_dH_dx(v.at(kIndexX), v.at(kIndexY1)) /
+                eval_dH_dy(v.at(kIndexX), v.at(kIndexY1)) *
+                dv.at(kIndexX);
+        dv.at(kIndexY2) = -eval_dH_dx(v.at(kIndexX), v.at(kIndexY2)) /
+                eval_dH_dy(v.at(kIndexX), v.at(kIndexY2)) *
+                dv.at(kIndexX);
+    }
+    else {
+        dv.at(kIndexX) = v.at(kIndexX) / (v.at(kIndexY2) - v.at(kIndexY1));
+        dv.at(kIndexY1) = -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY1))) /
                     eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY1))) *
                     dv.at(kIndexX) / std::exp(v.at(kIndexY1));
-  dv.at(kIndexY2) = -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY2))) /
+        dv.at(kIndexY2) = -eval_dH_dx(v.at(kIndexX), std::exp(v.at(kIndexY2))) /
                     eval_dH_dy(v.at(kIndexX), std::exp(v.at(kIndexY2))) *
                     dv.at(kIndexX) / std::exp(v.at(kIndexY2));
+    }
 }
 
 auto SW_curve::sw_step_prescribed(const state_type &v, state_type &dv) -> void {
@@ -130,18 +142,76 @@ auto SW_curve::sw_step_prescribed(const state_type &v, state_type &dv) -> void {
                     dv.at(kIndexX) / std::exp(v.at(kIndexY2));
 }
  
-auto SW_curve::newton_correction(state_type &v, int steps, double damp) -> void {
-    cplx x =v.at(kIndexX);
-    for (size_t id = 1; id <= 2; id++) {
-        for(size_t i = 0; i < steps; i++) {
-            if ( std::abs(eval_dH_dy(x,std::exp(v.at(id)))) < 1e-2) {
-                continue;
-            }
-            if ( std::abs(eval_dH_dy(x,std::exp(v.at(id)))) <  1e-2) {
-                continue;
-            }
-            v.at(id) = v.at(id) - damp * eval_H(x,std::exp(v.at(id))) 
-                / eval_dH_dy(x,std::exp(v.at(id))) * std::exp(v.at(id)); 
+auto SW_curve::newton_correction(state_type &v,
+                                 int steps,
+                                 double damp) -> void
+{
+    const cplx x = v.at(kIndexX);
+
+    const double TWO_PI = 2.0 * pi;
+    const double LOG_MAX = std::log(std::numeric_limits<double>::max());
+    const double LOG_MIN = std::log(std::numeric_limits<double>::min());
+    const double DERIV_EPS = 1e-14;
+    const double ABS_EPS   = 1e-50;
+
+    for (std::size_t id = 1; id <= 2; ++id)
+    {
+        for (int i = 0; i < steps; ++i)
+        {
+            cplx y_old = v.at(id);
+
+            // ----- Safe exponential -----
+            double re = std::real(y_old);
+
+            if (re > LOG_MAX - 2.0)
+                break; // would overflow
+
+            if (re < LOG_MIN + 2.0)
+                break; // would underflow
+
+            cplx Y = std::exp(y_old);
+
+            cplx H    = eval_H(x, Y);
+            cplx dHdy = eval_dH_dy(x, Y);
+
+            if (std::abs(dHdy) < DERIV_EPS)
+                break;
+
+            // ----- Newton in Y -----
+            cplx step = damp * H / dHdy;
+
+            if (!std::isfinite(std::real(step)) ||
+                !std::isfinite(std::imag(step)))
+                break;
+
+            cplx Y_new = Y - step;
+
+            if (std::abs(Y_new) < ABS_EPS)
+                break;  // avoid log(0)
+
+            // ----- Stable complex log -----
+            // log(z) = log(|z|) + i arg(z)
+            double absY = std::abs(Y_new);
+            double argY = std::atan2(std::imag(Y_new),
+                                     std::real(Y_new));
+
+            cplx y_new(std::log(absY), argY);
+
+            // ----- Restore original branch -----
+            double imag_diff =
+                std::imag(y_old) - std::imag(y_new);
+
+            double k_real = std::round(imag_diff / TWO_PI);
+            y_new += cplx(0.0, k_real * TWO_PI);
+
+            if (!std::isfinite(std::real(y_new)) ||
+                !std::isfinite(std::imag(y_new)))
+                break;
+
+            v.at(id) = y_new;
+
+            if (std::abs(step) < 1e-13)
+                break;
         }
     }
 }
@@ -279,12 +349,12 @@ auto SW_curve::get_branched_sheet(const cplx &x) -> std::vector<cplx> {
   for (auto it1 = std::rbegin(fiber); it1 != std::rend(fiber); it1++) {
     for (auto it2 = it1 + 1; it2 != std::rend(fiber); it2++) {
       double new_diff = std::abs(*it1 - *it2);
-      if (new_diff < 1e-4) {
+      if (new_diff < 1e-3) {
         diff = new_diff;
         cplx sheet = (*it1 + *it2) / 2.0;
         for(auto &s : sheets) {
             new_diff = std::abs(s - sheet);
-            if(new_diff < 1e-4)
+            if(new_diff < 1e-6)
             {
                 sheet = 0;
             }

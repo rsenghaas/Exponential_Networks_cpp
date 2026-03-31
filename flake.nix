@@ -33,6 +33,7 @@
           sympy
           networkx
           scipy
+          pypdf
           # add more packages here explicitly
         ]);
 

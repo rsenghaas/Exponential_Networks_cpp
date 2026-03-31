@@ -1,48 +1,154 @@
 file_a,file_b,arc_fraction
-data/path_data/path_data_101.csv,data/path_data/path_data_20.csv,0.91 0
-data/path_data/path_data_101.csv,data/path_data/path_data_79.csv,0.77 1
-data/path_data/path_data_101.csv,data/path_data/path_data_94.csv,0.97 2
-data/path_data/path_data_109.csv,data/path_data/path_data_121.csv,1.0 3
-data/path_data/path_data_109.csv,data/path_data/path_data_28.csv,0.99 4
-data/path_data/path_data_109.csv,data/path_data/path_data_82.csv,1.0 5
-data/path_data/path_data_110.csv,data/path_data/path_data_22.csv,0.976 6 (++)
-data/path_data/path_data_112.csv,data/path_data/path_data_22.csv,0.976 6 (--)
-data/path_data/path_data_121.csv,data/path_data/path_data_27.csv,0.99 7
-data/path_data/path_data_121.csv,data/path_data/path_data_83.csv,1.0 8
-data/path_data/path_data_126.csv,data/path_data/path_data_15.csv,0.53 9
-data/path_data/path_data_128.csv,data/path_data/path_data_24.csv,1.0 10
-data/path_data/path_data_13.csv,data/path_data/path_data_247.csv,1.0 11
-data/path_data/path_data_13.csv,data/path_data/path_data_249.csv,1.0 12
-data/path_data/path_data_13.csv,data/path_data/path_data_87.csv,1.0 13
-data/path_data/path_data_15.csv,data/path_data/path_data_256.csv,0.63 14
-data/path_data/path_data_15.csv,data/path_data/path_data_259.csv,0.63 15
-data/path_data/path_data_18.csv,data/path_data/path_data_79.csv,0.98 16
-data/path_data/path_data_18.csv,data/path_data/path_data_94.csv,1.0 17
-data/path_data/path_data_20.csv,data/path_data/path_data_77.csv,0.99 18
-data/path_data/path_data_209.csv,data/path_data/path_data_71.csv,0.97 19
-data/path_data/path_data_211.csv,data/path_data/path_data_71.csv,0.97 20
-data/path_data/path_data_22.csv,data/path_data/path_data_255.csv,1.0 21
-data/path_data/path_data_22.csv,data/path_data/path_data_257.csv,1.0 22
-data/path_data/path_data_22.csv,data/path_data/path_data_86.csv,1.0 23
-data/path_data/path_data_221.csv,data/path_data/path_data_50.csv,0.923 24
-data/path_data/path_data_223.csv,data/path_data/path_data_50.csv,0.924 25
-data/path_data/path_data_23.csv,data/path_data/path_data_253.csv,1.0 26
-data/path_data/path_data_23.csv,data/path_data/path_data_254.csv,1.0 27
-data/path_data/path_data_23.csv,data/path_data/path_data_88.csv,1.0 28
-data/path_data/path_data_24.csv,data/path_data/path_data_248.csv,1.0 29
-data/path_data/path_data_24.csv,data/path_data/path_data_250.csv,1.0 30
-data/path_data/path_data_24.csv,data/path_data/path_data_95.csv,0.99 31 (++)
-data/path_data/path_data_24.csv,data/path_data/path_data_97.csv,0.96 31 (--)
-data/path_data/path_data_25.csv,data/path_data/path_data_89.csv,1.0 32 (++)
-data/path_data/path_data_25.csv,data/path_data/path_data_91.csv,1.0 32 (--)
-data/path_data/path_data_27.csv,data/path_data/path_data_82.csv,1.0 33
-data/path_data/path_data_28.csv,data/path_data/path_data_83.csv,1.0 34
-data/path_data/path_data_30.csv,data/path_data/path_data_58.csv,1.0 35 (++)
-data/path_data/path_data_31.csv,data/path_data/path_data_57.csv,1.0 35 (--)
-data/path_data/path_data_38.csv,data/path_data/path_data_64.csv,1.0 36
-data/path_data/path_data_39.csv,data/path_data/path_data_63.csv,1.0 37
-data/path_data/path_data_50.csv,data/path_data/path_data_74.csv,0.905 38
-data/path_data/path_data_54.csv,data/path_data/path_data_71.csv,0.977 39
-data/path_data/path_data_77.csv,data/path_data/path_data_79.csv,0.99 40
-data/path_data/path_data_77.csv,data/path_data/path_data_94.csv,0.99 41
-data/path_data/path_data_82.csv,data/path_data/path_data_83.csv,1.0 42
+data/path_data/path_data_101.csv,data/path_data/path_data_52.csv,1.0
+data/path_data/path_data_101.csv,data/path_data/path_data_55.csv,1.0
+data/path_data/path_data_101.csv,data/path_data/path_data_72.csv,1.0
+data/path_data/path_data_102.csv,data/path_data/path_data_49.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_13.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_18.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_30.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_34.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_52.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_55.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_94.csv,1.0
+data/path_data/path_data_104.csv,data/path_data/path_data_97.csv,1.0
+data/path_data/path_data_105.csv,data/path_data/path_data_49.csv,1.0
+data/path_data/path_data_106.csv,data/path_data/path_data_49.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_13.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_18.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_52.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_55.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_107.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_13.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_18.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_30.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_34.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_52.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_55.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_94.csv,1.0
+data/path_data/path_data_110.csv,data/path_data/path_data_97.csv,1.0
+data/path_data/path_data_112.csv,data/path_data/path_data_57.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_21.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_27.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_40.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_42.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_60.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_63.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_82.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_84.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_87.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_88.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_90.csv,1.0
+data/path_data/path_data_113.csv,data/path_data/path_data_91.csv,1.0
+data/path_data/path_data_114.csv,data/path_data/path_data_57.csv,1.0
+data/path_data/path_data_115.csv,data/path_data/path_data_57.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_21.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_27.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_60.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_63.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_116.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_21.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_27.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_40.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_42.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_60.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_63.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_82.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_84.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_87.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_88.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_90.csv,1.0
+data/path_data/path_data_119.csv,data/path_data/path_data_91.csv,1.0
+data/path_data/path_data_13.csv,data/path_data/path_data_33.csv,1.0
+data/path_data/path_data_13.csv,data/path_data/path_data_36.csv,1.0
+data/path_data/path_data_13.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_13.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_13.csv,data/path_data/path_data_98.csv,1.0
+data/path_data/path_data_15.csv,data/path_data/path_data_52.csv,1.0
+data/path_data/path_data_15.csv,data/path_data/path_data_55.csv,1.0
+data/path_data/path_data_15.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_15.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_16.csv,data/path_data/path_data_72.csv,1.0
+data/path_data/path_data_17.csv,data/path_data/path_data_72.csv,1.0
+data/path_data/path_data_18.csv,data/path_data/path_data_33.csv,1.0
+data/path_data/path_data_18.csv,data/path_data/path_data_36.csv,1.0
+data/path_data/path_data_18.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_18.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_18.csv,data/path_data/path_data_98.csv,1.0
+data/path_data/path_data_19.csv,data/path_data/path_data_72.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_39.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_41.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_43.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_44.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_46.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_89.csv,1.0
+data/path_data/path_data_21.csv,data/path_data/path_data_92.csv,1.0
+data/path_data/path_data_24.csv,data/path_data/path_data_82.csv,1.0
+data/path_data/path_data_25.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_25.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_26.csv,data/path_data/path_data_82.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_39.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_41.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_43.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_44.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_46.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_89.csv,1.0
+data/path_data/path_data_27.csv,data/path_data/path_data_92.csv,1.0
+data/path_data/path_data_29.csv,data/path_data/path_data_82.csv,1.0
+data/path_data/path_data_30.csv,data/path_data/path_data_49.csv,1.0
+data/path_data/path_data_30.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_30.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_34.csv,data/path_data/path_data_49.csv,1.0
+data/path_data/path_data_34.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_34.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_40.csv,data/path_data/path_data_57.csv,1.0
+data/path_data/path_data_40.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_40.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_42.csv,data/path_data/path_data_57.csv,1.0
+data/path_data/path_data_42.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_42.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_52.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_52.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_52.csv,data/path_data/path_data_93.csv,1.0
+data/path_data/path_data_52.csv,data/path_data/path_data_95.csv,1.0
+data/path_data/path_data_52.csv,data/path_data/path_data_98.csv,1.0
+data/path_data/path_data_55.csv,data/path_data/path_data_66.csv,1.0
+data/path_data/path_data_55.csv,data/path_data/path_data_69.csv,1.0
+data/path_data/path_data_55.csv,data/path_data/path_data_93.csv,1.0
+data/path_data/path_data_55.csv,data/path_data/path_data_95.csv,1.0
+data/path_data/path_data_55.csv,data/path_data/path_data_98.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_85.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_86.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_89.csv,1.0
+data/path_data/path_data_60.csv,data/path_data/path_data_92.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_76.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_79.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_85.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_86.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_89.csv,1.0
+data/path_data/path_data_63.csv,data/path_data/path_data_92.csv,1.0
+data/path_data/path_data_66.csv,data/path_data/path_data_94.csv,1.0
+data/path_data/path_data_66.csv,data/path_data/path_data_96.csv,1.0
+data/path_data/path_data_66.csv,data/path_data/path_data_97.csv,1.0
+data/path_data/path_data_66.csv,data/path_data/path_data_99.csv,1.0
+data/path_data/path_data_69.csv,data/path_data/path_data_94.csv,1.0
+data/path_data/path_data_69.csv,data/path_data/path_data_96.csv,1.0
+data/path_data/path_data_69.csv,data/path_data/path_data_97.csv,1.0
+data/path_data/path_data_69.csv,data/path_data/path_data_99.csv,1.0
+data/path_data/path_data_76.csv,data/path_data/path_data_84.csv,1.0
+data/path_data/path_data_76.csv,data/path_data/path_data_87.csv,1.0
+data/path_data/path_data_76.csv,data/path_data/path_data_88.csv,1.0
+data/path_data/path_data_76.csv,data/path_data/path_data_90.csv,1.0
+data/path_data/path_data_76.csv,data/path_data/path_data_91.csv,1.0
+data/path_data/path_data_79.csv,data/path_data/path_data_84.csv,1.0
+data/path_data/path_data_79.csv,data/path_data/path_data_87.csv,1.0
+data/path_data/path_data_79.csv,data/path_data/path_data_88.csv,1.0
+data/path_data/path_data_79.csv,data/path_data/path_data_90.csv,1.0
+data/path_data/path_data_79.csv,data/path_data/path_data_91.csv,1.0

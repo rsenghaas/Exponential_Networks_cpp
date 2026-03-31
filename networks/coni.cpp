@@ -5,7 +5,7 @@
 #include "ginac_util.hpp"
 #include "type_util.hpp"
 
-constexpr cplx kQ_coni =  1.0 / (9.0 / 8.0 - 2.0 / 4.0 * J);
+const cplx kQ_coni = 17.0 / 16.0 * std::exp(2.0 * J * pi * 0.01);
 
 auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex { 
   std::array<int32_t, 4> M = {1,1,0,1};
@@ -14,6 +14,96 @@ auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
   int f = 0;
   x_sub = x_sub * GiNaC::pow(y_sub, f); 
   return 1 + x_sub + y_sub + complex_to_ex(kQ_coni) * x_sub * y_sub;
+}
+
+auto F_5_2_hyperbolic(const GiNaC::symbol& x, const GiNaC::symbol &y) -> GiNaC::ex {
+    std::array<int32_t, 4> M = {1, 0,-1,1};
+    auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
+    auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
+    auto Q = complex_to_ex(kQ_coni);
+
+    auto poly =
+    pow(Q,2)
+    - 2*Q*x_sub
+    + pow(x_sub,2)
+
+    + pow(Q,3)*y_sub
+    - 4*pow(Q,2)*x_sub*y_sub
+    + 3*Q*pow(x_sub,2)*y_sub
+
+    + 3*pow(Q,2)*x_sub*pow(y_sub,2)
+    - 3*pow(Q,3)*x_sub*pow(y_sub,2)
+    - 4*Q*pow(x_sub,2)*pow(y_sub,2)
+    + 5*pow(Q,2)*pow(x_sub,2)*pow(y_sub,2)
+    - Q*pow(x_sub,3)*pow(y_sub,2)
+
+    + 2*pow(Q,3)*x_sub*pow(y_sub,3)
+    - 3*pow(Q,2)*pow(x_sub,2)*pow(y_sub,3)
+    + 3*pow(Q,3)*pow(x_sub,2)*pow(y_sub,3)
+    - 2*pow(Q,2)*pow(x_sub,3)*pow(y_sub,3)
+
+    - pow(Q,4)*x_sub*pow(y_sub,4)
+    + 6*pow(Q,2)*pow(x_sub,2)*pow(y_sub,4)
+    - 4*pow(Q,3)*pow(x_sub,2)*pow(y_sub,4)
+    - pow(Q,3)*pow(x_sub,3)*pow(y_sub,4)
+
+    - 2*pow(Q,4)*x_sub*pow(y_sub,5)
+    - 3*pow(Q,3)*pow(x_sub,2)*pow(y_sub,5)
+    + 3*pow(Q,4)*pow(x_sub,2)*pow(y_sub,5)
+    + 2*pow(Q,3)*pow(x_sub,3)*pow(y_sub,5)
+
+    - pow(Q,4)*x_sub*pow(y_sub,6)
+    - 4*pow(Q,3)*pow(x_sub,2)*pow(y_sub,6)
+    + 5*pow(Q,4)*pow(x_sub,2)*pow(y_sub,6)
+    + 3*pow(Q,3)*pow(x_sub,3)*pow(y_sub,6)
+    - 3*pow(Q,4)*pow(x_sub,3)*pow(y_sub,6)
+
+    + 3*pow(Q,4)*pow(x_sub,2)*pow(y_sub,7)
+    - 4*pow(Q,4)*pow(x_sub,3)*pow(y_sub,7)
+    + pow(Q,4)*pow(x_sub,4)*pow(y_sub,7)
+
+    + pow(Q,4)*pow(x_sub,2)*pow(y_sub,8)
+    - 2*pow(Q,4)*pow(x_sub,3)*pow(y_sub,8)
+    + pow(Q,4)*pow(x_sub,4)*pow(y_sub,8);
+    return poly * y * y;
+}
+
+auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol &y) -> GiNaC::ex {
+    std::array<int32_t, 4> M = {1, 0,-1,1};
+    auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
+    auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
+    auto Q = complex_to_ex(kQ_coni);
+
+    auto poly = 
+    -0.99999* pow(Q,2)
+    + x_sub
+    - pow(Q,3)*y_sub
+    + Q*x_sub*y_sub
+    - 2*Q*x_sub*pow(y_sub,2)
+    + 2*pow(Q,2)*x_sub*pow(y_sub,2)
+    - 2*pow(Q,2)*x_sub*pow(y_sub,3)
+    + 2*pow(Q,3)*x_sub*pow(y_sub,3)
+    + pow(Q,2)*x_sub*pow(y_sub,4)
+    - 4*pow(Q,3)*x_sub*pow(y_sub,4)
+    + 3*pow(Q,4)*x_sub*pow(y_sub,4)
+    + pow(Q,3)*x_sub*pow(y_sub,5)
+    + pow(Q,4)*x_sub*pow(y_sub,5)
+    - 2*pow(Q,3)*pow(x_sub,2)*pow(y_sub,5)
+    + 2*pow(Q,4)*x_sub*pow(y_sub,6)
+    - pow(Q,3)*pow(x_sub,2)*pow(y_sub,6)
+    - pow(Q,4)*pow(x_sub,2)*pow(y_sub,6)
+    - pow(Q,3)*pow(x_sub,2)*pow(y_sub,7)
+    + 4*pow(Q,4)*pow(x_sub,2)*pow(y_sub,7)
+    - 3*pow(Q,5)*pow(x_sub,2)*pow(y_sub,7)
+    + 2*pow(Q,4)*pow(x_sub,2)*pow(y_sub,8)
+    - 2*pow(Q,5)*pow(x_sub,2)*pow(y_sub,8)
+    + 2*pow(Q,4)*pow(x_sub,2)*pow(y_sub,9)
+    - 2*pow(Q,5)*pow(x_sub,2)*pow(y_sub,9)
+    - pow(Q,5)*pow(x_sub,2)*pow(y_sub,10)
+    + pow(Q,6)*pow(x_sub,3)*pow(y_sub,10)
+    - pow(Q,5)*pow(x_sub,2)*pow(y_sub,11)
+    + pow(Q,6)*pow(x_sub,3)*pow(y_sub,11);
+    return poly * y;
 }
 
 auto F_2_3(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
@@ -84,7 +174,7 @@ auto F_trefoil_generic(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC:
     auto Q = complex_to_ex(kQ_coni);
     auto poly = 
        1 - x_sub - y_sub + x_sub * y_sub - 2 * x_sub * GiNaC::pow(y_sub,2) 
-       + 1.999995 * Q * x_sub * GiNaC::pow(y_sub,2) 
+       + 1.99995 * Q * x_sub * GiNaC::pow(y_sub,2) 
        + Q * x_sub * GiNaC::pow(y_sub,3)
        - GiNaC::pow(x_sub,2) * GiNaC::pow(y_sub,3) 
        - Q * Q * x_sub * GiNaC::pow(y_sub,4) 
@@ -92,6 +182,7 @@ auto F_trefoil_generic(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC:
     return (poly * y).expand();
 } 
 
+/*
 auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     int f = -1;
     auto coni_ex = complex_to_ex(kQ_coni);
@@ -130,6 +221,7 @@ auto F_2_5(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     spdlog::debug(F.str());
     return poly;
 }
+*/
 
 auto H_trefoil(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
     std::array<int32_t, 4> M = {1, 0,0,1};
@@ -146,17 +238,22 @@ auto H_trefoil(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
 }
 
 auto F_fig_8(const GiNaC::symbol& y, const GiNaC::symbol& x) -> GiNaC::ex {
-  return (GiNaC::pow(y, 2) - complex_to_ex(kQ_coni) * GiNaC::pow(y, 3)) +
-         (-1 + 2 * y - 2 * complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 4) +
-          complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 5)) *
-             x +
-         (1 - 2 * complex_to_ex(kQ_coni) * y +
-          2 * complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 4) -
-          complex_to_ex(kQ_coni * kQ_coni * kQ_coni) * GiNaC::pow(y, 5)) *
-             GiNaC::pow(x, 2) +
-         (-complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 2) +
-          complex_to_ex(kQ_coni * kQ_coni) * GiNaC::pow(y, 3)) *
-             GiNaC::pow(x, 3);
+  std::array<int32_t, 4> M = {1, 0,-1,1};
+  auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
+  auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
+  auto Q = complex_to_ex(kQ_coni);
+
+  auto poly = x_sub - x_sub * x_sub 
+      - 2 * Q * x_sub * y_sub + 2 * x_sub * x_sub * y_sub 
+      - Q*Q *y_sub * y_sub 
+      + GiNaC::pow(x_sub, 3) * y_sub * y_sub 
+      + Q * Q * GiNaC::pow(y_sub,3) 
+      - Q * GiNaC::pow(x_sub,3) * GiNaC::pow(y_sub, 3) 
+      + 2 *  Q * Q * x_sub * GiNaC::pow(y_sub, 4)
+      - 2 * Q * Q * GiNaC::pow(x_sub,2) * GiNaC::pow(y_sub,4) 
+      - GiNaC::pow(Q,3) * x_sub * GiNaC::pow(y_sub, 5) 
+      + 1 * Q * Q * x_sub * x_sub * GiNaC::pow(y_sub, 5);
+  return poly * GiNaC::pow(y_sub, 2);
 }
 
 const cplx kZeta5 = std::exp(2.0 * pi * J / 5.0);
@@ -346,19 +443,30 @@ auto Coni::evolve_all(double cutoff) -> void {
     uint32_t k = 0;
     for ( ;k < new_paths_.size(); k += 1){
         path_it = get_iterator_by_id(new_paths_, k);
+        auto endpoint = path_it->get_endpoint();
+        if(std::abs(endpoint.at(kIndexX)) > 10) {
+            // continue;
+        }
         save_data(path_it->path_id_);
         evolve_path(path_it, cutoff);
         path_it->truncate_mass(cutoff);
-        path_it->truncate_x(10);
+        path_it->truncate_x(50);
         save_data(path_it->path_id_);
     }
     uint32_t k0 = 0;
-    for (uint32_t l = 0; l < 4; l++) {
-        for (uint32_t m = 12; m < k; m += 1){
+    for (uint32_t l = 0; l < 2; l++) {
+        for (uint32_t m = 0; m < k; m += 1){
+            if(m >= 12 && m < 60) {
+                continue;
+            }
             for (uint32_t n = m + 1; n < k; n += 1){
+                if(n >= 12 && n < 60) {
+                    continue;
+                }
+
                 if (n >= k0) {
-                    for (uint32_t q = 0; q < 2; q++) {
-                        two_path_intersection_handler(m, n, false, false, 2, q, true, false);
+                    for (uint32_t q = 0; q < 1; q++) {
+                        two_path_intersection_handler(m, n, false, false, 3, q, true, false);
                     }
                 }
             }
@@ -366,10 +474,13 @@ auto Coni::evolve_all(double cutoff) -> void {
         k0 = k;
         for ( ;k < new_paths_.size(); k += 1) {
             path_it = get_iterator_by_id(new_paths_, k);
+            if (path_it->get_endmass() > cutoff) {
+                continue;
+            }
             save_data(path_it->path_id_);
             evolve_path(path_it, cutoff);
             path_it->truncate_mass(cutoff);
-            path_it->truncate_x(10);
+            path_it->truncate_x(50);
             save_data(path_it->path_id_);
         }
     }
@@ -377,6 +488,7 @@ auto Coni::evolve_all(double cutoff) -> void {
 
 auto Coni::custom_BPS(double cutoff) -> void { 
     evolve_all(cutoff);
+    // probe_curve();
 }
 
 /*

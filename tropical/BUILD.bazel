@@ -1,0 +1,32 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_import")
+
+cc_library(
+    name = "polynomials",
+    srcs = [
+    ],
+    hdrs = [
+        "tropical.hpp",
+    ],
+    copts= [
+        "-std=c++20",
+        "-O3",
+    ],
+)
+
+cc_binary(
+    name = "tropical",
+    srcs = [
+        "tropical.cpp",
+    ],
+    copts= [
+        "-std=c++23",
+        "-O3",
+    ],
+    linkopts = [
+        "-v",
+    ],
+    deps = [
+        "@eigen_archive//:eigen",
+        ":polynomials",
+    ],
+)
