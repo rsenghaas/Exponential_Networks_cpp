@@ -97,7 +97,7 @@ cc_library(
         ":path",
         ":maps",
         ":sw_curve",
-        ":nets",
+        ":spectral_nets",
     ]
 )
 

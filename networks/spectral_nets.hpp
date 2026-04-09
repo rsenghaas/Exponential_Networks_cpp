@@ -28,7 +28,7 @@ struct computed_intersection {
 
 class Spectral_Network {
  public:
-  Network(FuncType func,
+  Spectral_Network(FuncType func,
           double theta)
       : theta_(theta) {
     curve_ = std::make_shared<SW_curve>(func, "spectral");

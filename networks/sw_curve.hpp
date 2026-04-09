@@ -31,6 +31,7 @@ class SW_curve {
         dH_dy_(),
         d2H_dy2_() {
     compute_derivatives();
+    spdlog::debug("Curve setup complete");
   }
 
   auto eval_H(const cplx &x, const cplx &y) -> cplx;

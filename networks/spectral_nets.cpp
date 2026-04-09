@@ -21,8 +21,8 @@ auto Spectral_Network::get_iterator_by_id(std::vector<Path>& path_vec, uint32_t 
 }
 
 auto Spectral_Network::start_paths() -> void {
-  double branch_n = 2;
   for (auto r_it = ramification_points_.begin(); r_it != ramification_points_.end(); r_it++) {
+    double branch_n = 2;
     if (std::abs(r_it->at(kIndexX)) < 1e-20) {
       continue;
     }
@@ -40,7 +40,7 @@ auto Spectral_Network::start_paths() -> void {
     cplx b = r_it->at(kIndexX);
     cplx y = r_it->at(kIndexY);
 
-    spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),complex_to_string(std::log(y)));
+    spdlog::info("Branch point at x = {} with y = {}.", complex_to_string(b),complex_to_string(y));
     spdlog::debug("Exponentiated y = {}.", complex_to_string(y));
 
     state_type start_state;
@@ -58,15 +58,17 @@ auto Spectral_Network::start_paths() -> void {
     cplx dy;
     
     double dt = kBranchPointStep;
-    do {
-        dx = std::pow(
-                std::pow((branch_n + 1) / (branch_n * c) * std::pow(kappa, 1.0 / branch_n) * b * std::exp(J * theta_) * dt, branch_n),
-                    1.0 / (branch_n + 1));
-        spdlog::debug("dx is {}e-10", complex_to_string(dx * 1e10));
-        dy = (branch_n + 1) / (c * branch_n) * b * std::exp(J * theta_) * dt / dx;
-        spdlog::debug("dy is {}e-10", complex_to_string(dy * 1e10));
-        dt *= 2;
-    } while (std::abs(dy) < 1e-7 * std::pow(10,(branch_n - 2)));
+    cplx step = b * std::exp(J * theta_) * dt;
+
+    // For lambda = log(y) dx/x  (y* factor required — use this if switching back)
+    // cplx step = y * b * std::exp(J * theta_) * dt;
+
+    double n = branch_n;
+    dx = std::pow(
+        std::pow((n + 1.0) / (n * c) * std::pow(kappa, 1.0 / n) * step, n),
+        1.0 / (n + 1.0));
+
+    dy = (n + 1.0) / (n * c) * step / dx;
 
     for (uint32_t k = 0; k < branch_n + 1; k++) {
 
@@ -134,7 +136,7 @@ auto Spectral_Network::initial_integration() -> void {
       double step_size = kInitialStepSize;
       std::vector<state_type> v{path.get_endpoint()};
       std::vector<double> masses{path.get_endmass()};
-      for (uint32_t i = 0; i < kInitialSteps; i++) {
+      for (uint32_t i = 1; i < kInitialSteps; i++) {
         ODE_runge_kutta_step(curve_, v, masses, step_size, theta_);
         if (i % 50 == 0) {
             auto next_state = v.back();

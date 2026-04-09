@@ -7,12 +7,14 @@
 #include "sw_curve.hpp"
 
 // TODO: Introduce dedicated type for this kind of function.
-auto H_su(const GiNaC::symbol &x, const GiNaC::symbol &y) -> GiNaC::ex;
+auto H_su(const GiNaC::symbol &x, const GiNaC::symbol &y, cplx u) -> GiNaC::ex;
 
 
 class PureYM : protected Spectral_Network {
  public:
-  explicit PureYM(double theta) : Network(H_su, theta) {}
+  explicit PureYM(double theta, cplx u) : 
+      Spectral_Network([u](const GiNaC::symbol &x, const GiNaC::symbol &y) 
+              { return H_su(x,y, u); }, theta) {}
 
   auto custom_BPS(double cutoff) -> void;
 

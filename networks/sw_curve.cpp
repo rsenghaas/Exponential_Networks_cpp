@@ -79,6 +79,7 @@ auto SW_curve::get_branch_points() -> std::vector<cplx> {
 }
 
 auto SW_curve::get_ramification_points() -> std::vector<std::array<cplx, 2>> {
+  spdlog::debug("Searching ramification points");
   std::vector<cplx> branch_points = get_branch_points();
   std::vector<cplx> true_branch_points = {};
   std::vector<std::array<cplx, 2>> ramification_points;
@@ -91,9 +92,11 @@ auto SW_curve::get_ramification_points() -> std::vector<std::array<cplx, 2>> {
     }
     if(std::abs(b) < kZerosPrecisions or std::abs(b) > 1.0 / kZerosPrecisions) {
         continue;
-    }    auto sheets = get_branched_sheet(b);
+    }    
+    auto sheets = get_branched_sheet(b);
     for(auto &sheet: sheets) {
-        if(std::abs(sheet) != 0) {
+        spdlog::debug("Mode is {}", mode);
+        if(std::abs(sheet) > kZerosPrecisions || mode == "spectral") {
             std::array<cplx, 2> r;
             r.at(kIndexX) = b;
             r.at(kIndexY) = sheet;
@@ -256,6 +259,25 @@ auto SW_curve::match_fiber(state_type &v) -> void {
   std::vector<cplx> fiber = get_fiber(x);
   uint32_t fiber_y1_index = 0;
   uint32_t fiber_y2_index = 0;
+  if(mode == "spectral") {
+    cplx nearest_fiber_y1 = fiber.at(0);
+    cplx nearest_fiber_y2 = fiber.at(0);
+    for (uint32_t k = 1; k < fiber.size(); k++) {
+        if (std::abs(v.at(kIndexY1) - fiber.at(k)) <
+            std::abs(v.at(kIndexY1) - nearest_fiber_y1)) {
+            fiber_y1_index = k;
+            nearest_fiber_y1 = fiber.at(k);
+        }
+        if (std::abs(v.at(kIndexY2) - fiber.at(k)) <
+            std::abs(v.at(kIndexY2) - nearest_fiber_y2)) {
+            fiber_y2_index = k;
+            nearest_fiber_y2 = fiber.at(k);
+        }
+    }
+    v.at(kIndexY1) = nearest_fiber_y1;
+    v.at(kIndexY2) = nearest_fiber_y2;
+    return;
+  }
   cplx nearest_fiber_y1 = std::log(fiber.at(0));
   cplx nearest_fiber_y2 = std::log(fiber.at(0));
   for (uint32_t k = 0; k < fiber.size(); k++) {
@@ -352,14 +374,16 @@ auto SW_curve::get_branched_sheet(const cplx &x) -> std::vector<cplx> {
       if (new_diff < 1e-3) {
         diff = new_diff;
         cplx sheet = (*it1 + *it2) / 2.0;
+        bool new_sheet = true;
         for(auto &s : sheets) {
             new_diff = std::abs(s - sheet);
             if(new_diff < 1e-6)
             {
-                sheet = 0;
+                new_sheet = false;
+                break;
             }
         }
-        if (std::abs(sheet) > kZerosPrecisions){
+        if (new_sheet){
             sheets.push_back((*it1 + *it2) / 2.0);
             spdlog::debug("Ramification at {}", complex_to_string(sheet));
         }
