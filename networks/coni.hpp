@@ -19,7 +19,7 @@ auto F_5_2_hyperbolic(const GiNaC::symbol& x, const GiNaC::symbol &y) -> GiNaC::
 
 class Coni : protected Network {
  public:
-  explicit Coni(double theta) : Network(F_2_5, theta) {}
+  explicit Coni(double theta) : Network(F_2_3, theta) {}
 
   auto custom_BPS(double cutoff) -> void;
 

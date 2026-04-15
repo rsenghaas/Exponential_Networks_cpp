@@ -5,7 +5,7 @@
 #include "ginac_util.hpp"
 #include "type_util.hpp"
 
-const cplx kQ_coni = 17.0 / 16.0 * std::exp(2.0 * J * pi * 0.01);
+const cplx kQ_coni = 11.0 / 8.0 * std::exp(2.0 * J * pi * 0.0);
 
 auto H_coni(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex { 
   std::array<int32_t, 4> M = {1,1,0,1};
@@ -168,7 +168,7 @@ auto A_super_3_1(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex
 }
 
 auto F_trefoil_generic(const GiNaC::symbol& x, const GiNaC::symbol& y) -> GiNaC::ex {
-    std::array<int32_t, 4> M = {1, 0,-1,1};
+    std::array<int32_t, 4> M = {1, 0,0,1};
     auto x_sub = GiNaC::pow(x, M.at(0)) * GiNaC::pow(y, M.at(2));
     auto y_sub = GiNaC::pow(x, M.at(1)) * GiNaC::pow(y, M.at(3));
     auto Q = complex_to_ex(kQ_coni);

@@ -3,7 +3,7 @@ import numpy as np
 
 
 k = 16
-Q_coni = 19 / 16 * np.exp(2 * cmath.pi * 1j * 0)
+Q_coni = 11 / 8 * np.exp(2 * cmath.pi * 1j * 0)
 print(np.abs(Q_coni))
 Q_4_loc = 11.089582 * cmath.exp(-0.4365 * 1j)
 Q_4 = 201.9 * cmath.exp(-0.01 * 1j)
